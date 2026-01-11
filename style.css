@@ -1,0 +1,335 @@
+:root {
+    --bg-color: #1a1a2e;
+    --board-bg: #16213e;
+    --field-color: #0f3460;
+    --field-border: #533483;
+    --trap-color: #e94560;
+    --chance-color: #f1c40f; /* Aranyszín a szerencsemezőnek */
+    --text-color: #ffffff;
+    --p1-color: #ff5252;
+    --p2-color: #448aff;
+    --p3-color: #69f0ae;
+    --p4-color: #ffd740;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* SETUP SCREEN */
+.setup-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 300;
+}
+
+.setup-content {
+    background: var(--board-bg);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
+    border: 2px solid var(--p2-color);
+}
+
+.setup-content h1 { margin-bottom: 20px; }
+.setup-content p { margin-bottom: 30px; font-size: 1.2rem; }
+
+.player-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.player-buttons button {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    background: linear-gradient(45deg, #448aff, #69f0ae);
+    border: none;
+    border-radius: 10px;
+    color: #1a1a2e;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.player-buttons button:hover { transform: scale(1.05); }
+
+/* GAME CONTAINER */
+.game-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    max-width: 1200px;
+    width: 100%;
+    z-index: 1;
+}
+
+.game-container.hidden { display: none; }
+
+.board-wrapper {
+    flex: 2;
+    min-width: 300px;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: var(--board-bg);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    padding: 20px;
+}
+
+.board {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.field {
+    position: absolute;
+    background-color: var(--field-color);
+    border: 2px solid var(--field-border);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: rgba(255,255,255,0.3);
+    font-size: 1.2rem;
+    transition: transform 0.3s;
+}
+
+/* CSAPDA MEZŐ STÍLUS */
+.field.trap {
+    border-color: var(--trap-color);
+    box-shadow: inset 0 0 10px rgba(233, 69, 96, 0.5);
+}
+
+/* SZERENCSE MEZŐ STÍLUS (ÚJ) */
+.field.chance {
+    border-color: var(--chance-color);
+    box-shadow: inset 0 0 15px rgba(241, 196, 15, 0.4);
+    color: var(--chance-color); /* A szám is legyen arany */
+}
+
+/* Kis ikon a szerencsemező sarkába */
+.field.chance::after {
+    content: '\f005'; /* FontAwesome csillag */
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.6rem;
+    color: var(--chance-color);
+}
+
+.pawn {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.8);
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+.pawn.p1 { background-color: var(--p1-color); }
+.pawn.p2 { background-color: var(--p2-color); }
+.pawn.p3 { background-color: var(--p3-color); }
+.pawn.p4 { background-color: var(--p4-color); }
+
+.controls {
+    flex: 1;
+    min-width: 300px;
+    background: #1f2a48;
+    padding: 20px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.current-player-info h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.player-indicator {
+    padding: 5px 10px;
+    border-radius: 5px;
+    background-color: var(--p1-color);
+    color: #000;
+}
+
+.dice-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.dice-buttons button {
+    padding: 15px;
+    font-size: 1.2rem;
+    background: #2c3e50;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dice-buttons button:hover {
+    background: #34495e;
+    transform: translateY(-2px);
+}
+
+#draw-card-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(45deg, #f0932b, #ffbe76);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #2d3436;
+    transition: transform 0.2s, background 0.3s;
+}
+
+/* Letiltott gomb stílusa */
+#draw-card-btn:disabled {
+    background: #555;
+    color: #888;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#draw-card-btn:not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
+#draw-card-btn:active {
+    transform: scale(0.95);
+}
+
+.game-log {
+    flex-grow: 1;
+    background: rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 8px;
+    height: 150px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    border: 1px solid #533483;
+}
+
+.game-log p {
+    margin-bottom: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 2px;
+}
+
+/* --- MODAL --- */
+.modal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-content {
+    background: var(--board-bg);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    border: 2px solid var(--p3-color);
+    max-width: 400px;
+    animation: popIn 0.3s ease-out;
+}
+
+.modal-content button {
+    margin-top: 20px;
+    padding: 10px 25px;
+    background: var(--p2-color);
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* --- GIF OVERLAY --- */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 200;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    pointer-events: none;
+}
+
+.overlay.active { pointer-events: all; }
+.overlay.hidden { opacity: 0; }
+
+.gif-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 90%;
+    width: 400px;
+    color: #333;
+    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#gif-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    border: 3px solid #000;
+}
+
+@media (max-width: 768px) {
+    .game-container { flex-direction: column; }
+    .board-wrapper { height: 80vw; }
+}

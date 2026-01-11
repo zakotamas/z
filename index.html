@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Társasjáték - GIF Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="setup-screen" class="setup-overlay">
+        <div class="setup-content">
+            <h1>Üdvözöllek a játékban!</h1>
+            <p>Hány játékos szeretne játszani?</p>
+            <div class="player-buttons">
+                <button onclick="game.startGame(1)">1 Játékos</button>
+                <button onclick="game.startGame(2)">2 Játékos</button>
+                <button onclick="game.startGame(3)">3 Játékos</button>
+                <button onclick="game.startGame(4)">4 Játékos</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container hidden" id="main-game-container">
+        <div class="board-wrapper">
+            <div id="game-board" class="board"></div>
+        </div>
+
+        <div class="controls">
+            <div class="current-player-info">
+                <h2>Soron lévő: <span id="player-name" class="player-indicator">Játékos 1</span></h2>
+            </div>
+
+            <div class="dice-input-section">
+                <p>Mit dobtál a kockával?</p>
+                <div class="dice-buttons">
+                    <button onclick="game.handleRoll(1)">1</button>
+                    <button onclick="game.handleRoll(2)">2</button>
+                    <button onclick="game.handleRoll(3)">3</button>
+                    <button onclick="game.handleRoll(4)">4</button>
+                    <button onclick="game.handleRoll(5)">5</button>
+                    <button onclick="game.handleRoll(6)">6</button>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="draw-card-btn" onclick="game.drawChanceCard()" disabled>
+                    <i class="fas fa-ticket-alt"></i> Szerencsekártya Húzása
+                </button>
+            </div>
+
+            <div class="game-log" id="game-log">
+                <p>Válassz játékosszámot az induláshoz...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">Cím</h3>
+            <p id="modal-text">Szöveg</p>
+            <button onclick="game.closeModal()">Rendben</button>
+        </div>
+    </div>
+
+    <div id="gif-overlay" class="overlay hidden">
+        <div class="gif-content">
+            <img id="gif-image" src="" alt="Vicces jelenet">
+            <h2 id="gif-title" style="color: #ff5252; margin: 10px 0;">Jaj ne!</h2>
+            <p id="gif-message" style="font-size: 1.2rem;">Szöveg</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
