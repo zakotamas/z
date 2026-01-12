@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Társasjáték - GIF Edition</title>
+    <title>Társasjáték - Ultimate GIF Edition</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -11,10 +11,10 @@
 
     <div id="setup-screen" class="setup-overlay">
         <div class="setup-content">
+            <img src="img/logo.png" alt="Játék Logo" class="game-logo">
             <h1>Üdvözöllek a játékban!</h1>
             <p>Hány játékos szeretne játszani?</p>
             <div class="player-buttons">
-                <button onclick="game.startGame(1)">1 Játékos</button>
                 <button onclick="game.startGame(2)">2 Játékos</button>
                 <button onclick="game.startGame(3)">3 Játékos</button>
                 <button onclick="game.startGame(4)">4 Játékos</button>
@@ -66,9 +66,15 @@
 
     <div id="gif-overlay" class="overlay hidden">
         <div class="gif-content">
-            <img id="gif-image" src="" alt="Vicces jelenet">
-            <h2 id="gif-title" style="color: #ff5252; margin: 10px 0;">Jaj ne!</h2>
-            <p id="gif-message" style="font-size: 1.2rem;">Szöveg</p>
+            <div class="gif-frame">
+                <img id="gif-image" src="" alt="Jelenet">
+            </div>
+            <h2 id="gif-title">Jaj ne!</h2>
+            <div class="message-box">
+                <p id="gif-message">Szöveg</p>
+            </div>
+            
+            <button id="winner-btn" class="hidden" onclick="game.resetGame()">Új Játék Indítása</button>
         </div>
     </div>
 

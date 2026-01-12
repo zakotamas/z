@@ -1,26 +1,42 @@
 class BoardGame {
     constructor() {
-        this.boardSize = 30;
+        this.boardSize = 50;
+        
         this.allPlayers = [
-            { id: 1, name: 'Játékos 1', color: 'var(--p1-color)', pos: 0 },
-            { id: 2, name: 'Játékos 2', color: 'var(--p2-color)', pos: 0 },
-            { id: 3, name: 'Játékos 3', color: 'var(--p3-color)', pos: 0 },
-            { id: 4, name: 'Játékos 4', color: 'var(--p4-color)', pos: 0 }
+            { id: 1, name: 'Játékos 1', color: 'var(--p1-color)', pos: 0, skipTurn: false },
+            { id: 2, name: 'Játékos 2', color: 'var(--p2-color)', pos: 0, skipTurn: false },
+            { id: 3, name: 'Játékos 3', color: 'var(--p3-color)', pos: 0, skipTurn: false },
+            { id: 4, name: 'Játékos 4', color: 'var(--p4-color)', pos: 0, skipTurn: false }
         ];
         this.activePlayers = [];
         this.currentPlayerIndex = 0;
         
         this.traps = {}; 
-        this.chanceFields = {}; // Itt tároljuk a szerencsemezőket
+        this.chanceFields = {}; 
 
         this.chanceCards = [
-            { text: "Találtál egy titkos átjárót! Lépj előre 2 mezőt.", move: 2 },
-            { text: "Elfelejtetted a kulcsodat. Lépj vissza 1 mezőt.", move: -1 },
-            { text: "Szerencsés napod van! Kaptál egy bónusz dobást.", move: 0 },
-            { text: "Megcsúsztál egy banánhéjon. Lépj vissza 2-t.", move: -2 },
-            { text: "Gyorsítósáv! Lépj előre 5 mezőt!", move: 5 }
+            { text: "Találtál egy titkos átjárót! Lépj előre 2 mezőt.", move: 2, action: null },
+            { text: "Elfelejtetted a kulcsodat. Lépj vissza 1 mezőt.", move: -1, action: null },
+            { text: "Szerencsés napod van! Dobj mégegyszer!", move: 0, action: 'bonus' },
+            { text: "Megcsúsztál egy banánhéjon. Lépj vissza 2-t.", move: -2, action: null },
+            { text: "Gyorsítósáv! Lépj előre 5 mezőt!", move: 5, action: null },
+            { text: "Túl sokat ettél az ebédnél. Kimaradsz egy körből!", move: 0, action: 'skip' }
         ];
 
+        this.victoryMessages = [
+            "Hölgyeim és Uraim, van egy új királyunk! Hajtsatok fejet!",
+            "Ez igen! Még a csapdák is félreugrottak előled. Zseniális győzelem!",
+            "Látod? Nem is volt olyan nehéz... (dehogynem). Gratulálok!",
+            "A gravitációt legyőzted, a többieket lekörözted. Tiéd a dicsőség!",
+            "Hihetetlen! Úgy mentél végig a pályán, mint kés a vajon.",
+            "Nyereményed: Egy képzeletbeli aranyérem és a többiek irigy pillantása!",
+            "Hivatalosan is te vagy a Szerencse Fia/Lánya mára!",
+            "Befejezted a játékot, mielőtt a többiek egyáltalán rájöttek volna, mi történik.",
+            "Csak a legnagyobbak érnek be így a célba. Le a kalappal!",
+            "Ez a teljesítmény bekerül a történelemkönyvekbe... vagy legalábbis a chatablakba."
+        ];
+
+        // A gif lista változatlan, de itt van a teljesség kedvéért
         this.gifData = [
             { file: "Tumblinggif.gif", text: "Hatalmas zakózás! A gravitáció ma nem a barátod." },
             { file: "Bidengif.gif", text: "A lépcsőfokok alattomosak! Megbotlottál felfelé menet." },
@@ -29,7 +45,20 @@ class BoardGame {
             { file: "drunk2gif.gif", text: "Egyenesen menni nehezebb, mint hitted..." },
             { file: "falldowngif.gif", text: "Vigyázz, csúszós padló! Puff, a fenekedre estél." },
             { file: "treppegif.gif", text: "A lépcsőház fantomja gáncsolt el. Au!" },
-            { file: "popcorngif.gif", text: "Annyira megijedtél, hogy a popcorn is repült!" }
+            { file: "popcorngif.gif", text: "Annyira megijedtél, hogy a popcorn is repült!" },
+            { file: "AmusementPark Fallinggif.gif", text: "A vidámpark nem neked való. Forog veled a világ!" },
+            { file: "die family guy GIF.gif", text: "Drámai végkifejlet! Mint egy szappanoperában." },
+            { file: "Drunk Falling GIF.gif", text: "Hazafele menet kicsit megborult az egyensúly..." },
+            { file: "drunk leonardo dicaprio GIF.gif", text: "Próbálsz laza lenni, de a padló közelebb van a vártnál." },
+            { file: "Elon Musk Smoking GIF.gif", text: "Most kicsit leülsz és átgondolod az életed értelmét." },
+            { file: "Fail Falling Down GIF.gif", text: "Ez fájt! Még nézni is rossz volt." },
+            { file: "Falling Down Lol GIF.gif", text: "A közönség nevet, te pedig a földön. Kellemetlen." },
+            { file: "goat falling GIF.gif", text: "Ijedtedben lemerevedtél, mint egy kecske!" },
+            { file: "monkey falling GIF.gif", text: "Még az ágról is leesel, nemhogy a létráról!" },
+            { file: "running into GIF.gif", text: "Nem láttad az üvegajtót? Csattanós találkozás!" },
+            { file: "shocked melissa mccarthy GIF.gif", text: "Atyaég! Ezt senki nem látta jönni." },
+            { file: "weed smoking GIF.gif", text: "Kicsit belassultál, minden olyan... furcsa." },
+            { file: "work GIF.gif", text: "Túl sok a munka, összeestél a terhelés alatt." }
         ];
 
         this.isAnimating = false;
@@ -48,12 +77,12 @@ class BoardGame {
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('main-game-container').classList.remove('hidden');
         this.init();
-        this.log(`A játék elkezdődött ${numPlayers} játékossal!`);
+        this.log(`A játék elkezdődött ${numPlayers} játékossal! A cél: Érj körbe a pályán!`);
     }
 
     init() {
         this.generateTraps();
-        this.generateChanceFields(); // Új: Szerencsemezők generálása
+        this.generateChanceFields();
         this.renderBoard();
         this.renderPawns();
         this.updateUI();
@@ -62,32 +91,22 @@ class BoardGame {
     generateTraps() {
         let count = 0;
         this.traps = {};
-
-        while (count < 10) {
+        while (count < 18) { 
             let rand = Math.floor(Math.random() * (this.boardSize - 2)) + 1;
-            
             if (!this.traps[rand]) {
                 const penaltyValue = -1 * (Math.floor(Math.random() * 3) + 1);
                 const selectedGif = this.gifData[Math.floor(Math.random() * this.gifData.length)];
-
-                this.traps[rand] = {
-                    penalty: penaltyValue,
-                    gif: selectedGif
-                };
+                this.traps[rand] = { penalty: penaltyValue, gif: selectedGif };
                 count++;
             }
         }
     }
 
-    // ÚJ: 5 db szerencsemező generálása
     generateChanceFields() {
         let count = 0;
         this.chanceFields = {};
-
-        while (count < 5) {
+        while (count < 10) { 
             let rand = Math.floor(Math.random() * (this.boardSize - 2)) + 1;
-            
-            // Ne legyen ott csapda és ne legyen már kiválasztva
             if (!this.traps[rand] && !this.chanceFields[rand]) {
                 this.chanceFields[rand] = true;
                 count++;
@@ -104,25 +123,76 @@ class BoardGame {
             field.className = 'field';
             
             if (this.traps[i]) field.classList.add('trap');
-            if (this.chanceFields[i]) field.classList.add('chance'); // Új class
+            if (this.chanceFields[i]) field.classList.add('chance');
             
-            field.innerText = i === 0 ? 'Start' : i;
+            // Start mező ikon
+            if (i === 0) field.innerHTML = '<i class="fas fa-flag-checkered"></i>';
+            else field.innerText = i;
             
             const pos = this.calculatePosition(i);
             field.style.left = pos.left + '%';
             field.style.top = pos.top + '%';
-            field.style.width = '10%';
-            field.style.height = '10%';
+            
+            // MÉRET JAVÍTÁSA: 13 mező fér el egy sorban. 
+            // 100% / 13 = 7.69%. Kicsit kevesebbet adunk, hogy ne érjenek össze.
+            field.style.width = '7%'; 
+            field.style.height = '7%'; 
             
             boardEl.appendChild(field);
         }
     }
 
+    // 1. Kérés javítása: TÖKÉLETESÍTETT POZICIONÁLÁS
+    // Összesen 50 mező (0-49).
+    // Sarkok: 0 (Bal-Fent), 12 (Jobb-Fent), 25 (Jobb-Lent), 37 (Bal-Lent)
     calculatePosition(index) {
-        if (index < 10) return { left: index * 10, top: 0 };
-        if (index < 15) return { left: 90, top: (index - 9) * 10 + 10 };
-        if (index < 25) return { left: 90 - (index - 15) * 10, top: 90 };
-        return { left: 0, top: 90 - (index - 24) * 10 };
+        // Mező méret konstans (CSS-hez igazítva)
+        const fieldSize = 7; 
+        const maxDist = 100 - fieldSize; // A rendelkezésre álló hely (0-tól 93%-ig)
+
+        // 1. FELSŐ SOR (0 -> 12) - 13 mező
+        if (index <= 12) {
+            // Balról jobbra halad
+            return { 
+                left: (index / 12) * maxDist, 
+                top: 0 
+            };
+        }
+        
+        // 2. JOBB OSZLOP (13 -> 24) - 12 mező
+        // A 12-es már a sarokban van, így a 13-as alá kerül.
+        else if (index <= 24) {
+            // Fentről lefelé halad
+            // A sorban 13 "hely" van függőlegesen is (0-tól 12-ig osztva a távot)
+            // index 13 -> 1. pozíció fentről, index 24 -> 12. pozíció fentről
+            const step = index - 12; 
+            // Az osztó 13, mert a jobb oldali szakasz a 12-estől a 25-ösig tart (ami 13 lépés)
+            return { 
+                left: maxDist, 
+                top: (step / 13) * maxDist 
+            };
+        }
+
+        // 3. ALSÓ SOR (25 -> 37) - 13 mező
+        else if (index <= 37) {
+            // Jobbról balra halad
+            const step = index - 25;
+            return { 
+                left: maxDist - ((step / 12) * maxDist), 
+                top: maxDist 
+            };
+        }
+
+        // 4. BAL OSZLOP (38 -> 49) - 12 mező
+        else {
+            // Lentről felfelé halad
+            const step = index - 37;
+            // Itt is 13 a viszonyítási alap a függőleges távolsághoz
+            return { 
+                left: 0, 
+                top: maxDist - ((step / 13) * maxDist) 
+            };
+        }
     }
 
     renderPawns() {
@@ -143,14 +213,16 @@ class BoardGame {
         const pawn = document.getElementById(`pawn-${player.id}`);
         const posCoords = this.calculatePosition(player.pos);
         
+        // Eltolás, hogy ne takarják egymást a bábuk
         const offsetMap = {
-            1: { x: -5, y: -5 }, 2: { x: 5, y: -5 },
-            3: { x: -5, y: 5 }, 4: { x: 5, y: 5 }
+            1: { x: -3, y: -3 }, 2: { x: 3, y: -3 },
+            3: { x: -3, y: 3 }, 4: { x: 3, y: 3 }
         };
         const offset = offsetMap[player.id];
 
-        pawn.style.left = `calc(${posCoords.left}% + 5% - 10px + ${offset.x}px)`;
-        pawn.style.top = `calc(${posCoords.top}% + 5% - 10px + ${offset.y}px)`;
+        // 3.5% a középpont (mert 7% a szélesség)
+        pawn.style.left = `calc(${posCoords.left}% + 3.5% - 7px + ${offset.x}px)`;
+        pawn.style.top = `calc(${posCoords.top}% + 3.5% - 7px + ${offset.y}px)`;
     }
 
     handleRoll(value) {
@@ -162,11 +234,23 @@ class BoardGame {
 
     async movePlayer(player, steps) {
         this.isAnimating = true;
-        let newPos = player.pos + steps;
         
-        if (newPos >= this.boardSize) {
+        let potentialPos = player.pos + steps;
+        
+        // Győzelem ellenőrzése
+        if (steps > 0 && potentialPos >= this.boardSize) {
+            player.pos = 0; 
+            this.movePawnVisuals(player);
+            this.handleWin(player);
+            return;
+        }
+
+        let newPos = potentialPos;
+        
+        if (newPos < 0) {
+            newPos = this.boardSize + newPos;
+        } else {
             newPos = newPos % this.boardSize;
-            this.log(`${player.name} átlépte a Startot!`);
         }
         
         player.pos = newPos;
@@ -177,42 +261,72 @@ class BoardGame {
         }, 800);
     }
 
-    // KULCSFONTOSSÁGÚ MÓDOSÍTÁS: Prioritások kezelése
+    handleWin(player) {
+        const randomMsg = this.victoryMessages[Math.floor(Math.random() * this.victoryMessages.length)];
+        
+        this.log(`🏆 GRATULÁLOK! ${player.name} MEGNYERTE A JÁTÉKOT! 🏆`);
+        
+        const randomWinNum = Math.floor(Math.random() * 12) + 1;
+        const gifFile = `winner/w${randomWinNum}.gif`;
+
+        const overlay = document.getElementById('gif-overlay');
+        const img = document.getElementById('gif-image');
+        const msg = document.getElementById('gif-message');
+        const title = document.getElementById('gif-title');
+        const btn = document.getElementById('winner-btn');
+
+        title.innerText = "GYŐZELEM!";
+        title.style.color = "#FFD700";
+        title.style.textShadow = "0 0 10px #FFD700";
+        
+        img.src = gifFile;
+        msg.innerHTML = `<b>${player.name}</b> beért a célba!<br><br><span style="color:#fbbf24; font-style:italic;">"${randomMsg}"</span>`;
+        
+        btn.classList.remove('hidden'); 
+        overlay.classList.remove('hidden');
+    }
+
+    resetGame() {
+        location.reload();
+    }
+
     checkFieldEffect(player) {
         const btn = document.getElementById('draw-card-btn');
-        btn.disabled = true; // Alapból letiltjuk minden lépésnél
+        btn.disabled = true;
 
-        // 1. PRIORITÁS: CSAPDA (GIF)
         if (this.traps[player.pos]) {
             const trapData = this.traps[player.pos];
-            const actualStepsBack = Math.min(Math.abs(trapData.penalty), player.pos);
-            const finalPenalty = -actualStepsBack;
+            const actualStepsBack = Math.min(Math.abs(trapData.penalty), player.pos > 0 ? player.pos : 0);
+            const finalPenalty = (player.pos === 0) ? 0 : -actualStepsBack;
 
-            this.showGifOverlay(trapData.gif, player, actualStepsBack, () => {
-                this.log(`${player.name} visszalép ${actualStepsBack} mezőt.`);
-                
-                setTimeout(() => {
-                    player.pos = Math.max(0, player.pos + finalPenalty);
-                    this.movePawnVisuals(player);
-                    
-                    // REKURZIÓ: Megnézzük, hova érkezett vissza! (Hátha szerencsemezőre vagy másik csapdára)
+            this.showGifOverlay(trapData.gif, player, finalPenalty === 0 ? 0 : actualStepsBack, () => {
+                if (finalPenalty !== 0) {
+                    this.log(`${player.name} visszalép ${actualStepsBack} mezőt.`);
                     setTimeout(() => {
-                        this.checkFieldEffect(player);
+                        let newBackPos = player.pos + finalPenalty;
+                        if (newBackPos < 0) newBackPos = this.boardSize + newBackPos;
+                        
+                        player.pos = newBackPos;
+                        this.movePawnVisuals(player);
+                        
+                        setTimeout(() => {
+                            this.checkFieldEffect(player);
+                        }, 500);
                     }, 500);
-                }, 500);
+                } else {
+                    this.nextTurn();
+                }
             });
-            return; // Kilépünk, ne fusson tovább
+            return;
         } 
 
-        // 2. PRIORITÁS: SZERENCSEMEZŐ
         if (this.chanceFields[player.pos]) {
             this.log(`${player.name} szerencsés mezőre lépett! Húzhat egy kártyát.`);
-            btn.disabled = false; // Gomb engedélyezése
-            this.isAnimating = false; // Engedjük a gombnyomást
-            return; // Kilépünk, a játékosnak kell cselekednie (gombnyomás)
+            btn.disabled = false;
+            this.isAnimating = false;
+            return;
         }
 
-        // 3. PRIORITÁS: SEMMI KÜLÖNÖS -> Következő kör
         this.nextTurn();
     }
 
@@ -220,66 +334,84 @@ class BoardGame {
         const overlay = document.getElementById('gif-overlay');
         const img = document.getElementById('gif-image');
         const msg = document.getElementById('gif-message');
-        
+        const title = document.getElementById('gif-title');
+        const btn = document.getElementById('winner-btn');
+
+        btn.classList.add('hidden');
+        title.innerText = "Jaj ne!";
+        title.style.color = "#ef4444";
+        title.style.textShadow = "0 0 10px #ef4444";
+
         img.src = `gif/${gifObj.file}`; 
-        msg.innerHTML = `${gifObj.text}<br><br><b>${player.name} lépjen vissza ${stepsBack} mezőt!</b>`;
+        
+        let textInfo = gifObj.text;
+        if (stepsBack > 0) {
+            textInfo += `<br><br><b style="color:#f87171;">${player.name} lépjen vissza ${stepsBack} mezőt!</b>`;
+        } else {
+            textInfo += `<br><br><b>${player.name} megúszta a visszalépést, de az esést nem!</b>`;
+        }
+
+        msg.innerHTML = textInfo;
         
         overlay.classList.remove('hidden');
-        overlay.classList.add('active');
 
         setTimeout(() => {
             overlay.classList.add('hidden');
-            overlay.classList.remove('active');
-            
             setTimeout(() => {
                 img.src = ""; 
                 if (callback) callback();
             }, 500); 
-        }, 4000); 
+        }, 6000); 
     }
 
     drawChanceCard() {
-        // Csak akkor működjön, ha engedélyezve van (bár a disabled attribútum is védi)
         if (document.getElementById('draw-card-btn').disabled) return;
-
-        // Azonnal letiltjuk, hogy ne lehessen kétszer kattintani
         document.getElementById('draw-card-btn').disabled = true;
 
         const card = this.chanceCards[Math.floor(Math.random() * this.chanceCards.length)];
         const player = this.activePlayers[this.currentPlayerIndex];
         
         this.showModal('Szerencsekártya', card.text);
-        this.log(`${player.name} kártyát húzott: ${card.text}`);
+        this.log(`${player.name} húzott: ${card.text}`);
 
-        // Ha van mozgás a kártyában
+        if (card.action === 'bonus') {
+            this.isAnimating = false;
+            this.log(`${player.name} újra dobhat!`);
+            return; 
+        }
+
+        if (card.action === 'skip') {
+            player.skipTurn = true;
+            this.nextTurn();
+            return;
+        }
+
         if (card.move !== 0) {
-            this.isAnimating = true; // Zároljuk a dobást amíg mozog
+            this.isAnimating = true;
             setTimeout(() => {
-                 let newPos = player.pos + card.move;
-                 
-                 if (newPos < 0) newPos = 0;
-                 if (newPos >= this.boardSize) newPos = newPos % this.boardSize;
-                 
-                 player.pos = newPos;
-                 this.movePawnVisuals(player);
-
-                 // REKURZIÓ (2. KÉRÉS): Ha a kártya csapdára dob, az aktiválódjon!
-                 setTimeout(() => {
-                     this.checkFieldEffect(player);
-                 }, 800);
-
+                 this.movePlayer(player, card.move);
             }, 1000);
         } else {
-            // Ha nincs mozgás, vége a körnek
             this.nextTurn();
         }
     }
 
     nextTurn() {
-        // Biztonság kedvéért letiltjuk a gombot, ha esetleg aktív maradt volna
         document.getElementById('draw-card-btn').disabled = true;
         
-        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.activePlayers.length;
+        let nextIndex = (this.currentPlayerIndex + 1) % this.activePlayers.length;
+        let nextPlayer = this.activePlayers[nextIndex];
+
+        if (nextPlayer.skipTurn) {
+            this.log(`${nextPlayer.name} kimarad ebből a körből!`);
+            nextPlayer.skipTurn = false; 
+            
+            this.currentPlayerIndex = nextIndex;
+            this.nextTurn(); 
+            return;
+        }
+
+        this.currentPlayerIndex = nextIndex;
         this.updateUI();
         this.isAnimating = false;
     }
