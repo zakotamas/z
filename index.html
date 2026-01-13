@@ -2,7 +2,7 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Társasjáték - Ultimate GIF Edition</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,45 +13,66 @@
         <div class="setup-content">
             <img src="img/logo.png" alt="Játék Logo" class="game-logo">
             <h1>Üdvözöllek a játékban!</h1>
-            <p>Hány játékos szeretne játszani?</p>
+            <p>Hányan szeretnétek játszani?</p>
             <div class="player-buttons">
                 <button onclick="game.startGame(2)">2 Játékos</button>
                 <button onclick="game.startGame(3)">3 Játékos</button>
                 <button onclick="game.startGame(4)">4 Játékos</button>
+                <button onclick="game.startGame(5)">5 Játékos</button>
+                <button onclick="game.startGame(6)">6 Játékos</button>
             </div>
         </div>
     </div>
 
     <div class="game-container hidden" id="main-game-container">
+        
         <div class="board-wrapper">
+            
+            <div class="inner-decorations">
+                <div class="slogan slogan-top">Nem kell mindig jól járni!</div>
+                <div class="slogan slogan-right">Nem kell mindig jól járni!</div>
+                <div class="slogan slogan-bottom">Nem kell mindig jól járni!</div>
+                <div class="slogan slogan-left">Nem kell mindig jól járni!</div>
+            </div>
+
+            <div class="center-image-container">
+                <img src="img/jatek_kozep.png" alt="Játék közepe" class="center-img">
+            </div>
+            
             <div id="game-board" class="board"></div>
         </div>
 
         <div class="controls">
             <div class="current-player-info">
-                <h2>Soron lévő: <span id="player-name" class="player-indicator">Játékos 1</span></h2>
+                <h2>Soron lévő:</h2>
+                <div id="player-indicator-box" class="player-indicator-box">
+                    <span id="player-name">Játékos 1</span>
+                </div>
             </div>
 
             <div class="dice-input-section">
-                <p>Mit dobtál a kockával?</p>
+                <p class="dice-label">Mit dobtál a kockával?</p>
                 <div class="dice-buttons">
-                    <button onclick="game.handleRoll(1)">1</button>
-                    <button onclick="game.handleRoll(2)">2</button>
-                    <button onclick="game.handleRoll(3)">3</button>
-                    <button onclick="game.handleRoll(4)">4</button>
-                    <button onclick="game.handleRoll(5)">5</button>
-                    <button onclick="game.handleRoll(6)">6</button>
+                    <button onclick="game.handleRoll(1)"><i class="fas fa-dice-one"></i></button>
+                    <button onclick="game.handleRoll(2)"><i class="fas fa-dice-two"></i></button>
+                    <button onclick="game.handleRoll(3)"><i class="fas fa-dice-three"></i></button>
+                    <button onclick="game.handleRoll(4)"><i class="fas fa-dice-four"></i></button>
+                    <button onclick="game.handleRoll(5)"><i class="fas fa-dice-five"></i></button>
+                    <button onclick="game.handleRoll(6)"><i class="fas fa-dice-six"></i></button>
                 </div>
             </div>
 
             <div class="actions">
                 <button id="draw-card-btn" onclick="game.drawChanceCard()" disabled>
-                    <i class="fas fa-ticket-alt"></i> Szerencsekártya Húzása
+                    <i class="fas fa-ticket-alt"></i> Szerencsekártya
                 </button>
             </div>
 
-            <div class="game-log" id="game-log">
-                <p>Válassz játékosszámot az induláshoz...</p>
+            <div class="game-log-container">
+                <h3><i class="fas fa-history"></i> Eseménynapló</h3>
+                <div class="game-log" id="game-log">
+                    <p>Válassz játékosszámot az induláshoz...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -59,8 +80,10 @@
     <div id="modal" class="modal hidden">
         <div class="modal-content">
             <h3 id="modal-title">Cím</h3>
-            <p id="modal-text">Szöveg</p>
-            <button onclick="game.closeModal()">Rendben</button>
+            <div class="modal-body-scroll">
+                <p id="modal-text">Szöveg</p>
+            </div>
+            <button id="modal-ok-btn">Rendben</button>
         </div>
     </div>
 
