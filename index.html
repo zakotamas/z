@@ -101,6 +101,48 @@
         </div>
     </div>
 
+    <div id="riddle-overlay" class="overlay hidden">
+        <div class="riddle-card-container">
+            <div class="riddle-card-inner" id="riddle-card-inner">
+                
+                <div class="riddle-front">
+                    <div class="riddle-header">
+                        <i class="fas fa-brain"></i> Találós Kérdés
+                    </div>
+                    <div class="riddle-body">
+                        <p id="riddle-question-text">...</p>
+                    </div>
+                    <div class="timer-container">
+                        <div class="timer-bar" id="riddle-timer-bar"></div>
+                        <span id="timer-text">15</span>
+                    </div>
+                    <p class="hint-text">Gondolkodj! Az idő fogy...</p>
+                </div>
+
+                <div class="riddle-back">
+                    <div class="riddle-header">
+                        <i class="fas fa-lightbulb"></i> A Megoldás
+                    </div>
+                    <div class="riddle-body">
+                        <p id="riddle-answer-text">...</p>
+                    </div>
+                    <div class="riddle-controls">
+                        <p>Helyes volt a válaszod?</p>
+                        <div class="riddle-buttons">
+                            <button class="btn-correct" onclick="game.resolveRiddle(true)">
+                                <i class="fas fa-check"></i> Igen (Újradobás)
+                            </button>
+                            <button class="btn-incorrect" onclick="game.resolveRiddle(false)">
+                                <i class="fas fa-times"></i> Nem (Kimaradsz)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

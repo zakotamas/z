@@ -1,7 +1,7 @@
 // --- JÁTÉK OSZTÁLY LÉTREHOZÁSA ---
 class BoardGame {
     constructor() {
-        // 4. Kérés: Részletes kommentek hozzáadása
+        // --- 4. Kérés: Részletes kommentek hozzáadása ---
         
         // A pálya teljes hossza (50 mező: 0-tól 49-ig)
         this.boardSize = 50;
@@ -21,9 +21,10 @@ class BoardGame {
         // A jelenleg soron lévő játékos indexe az activePlayers tömbben
         this.currentPlayerIndex = 0;
         
-        // Objektumok a csapdák és szerencsemezők tárolására (kulcs = mező indexe)
+        // Objektumok a csapdák, szerencsemezők és találós kérdések tárolására (kulcs = mező indexe)
         this.traps = {}; 
         this.chanceFields = {}; 
+        this.riddleFields = {}; // Új: Tároló a találós kérdés mezőknek
 
         // Szerencsekártyák listája
         // action: 'bonus' (újradobás), 'skip' (kimaradás), null (csak mozgás)
@@ -39,6 +40,24 @@ class BoardGame {
             { text: "Hirtelen hátszél! Lépj előre 2 mezőt.", move: 2, action: null },
             { text: "Leesett a térkép a kezedből. Lépj vissza 2 mezőt.", move: -2, action: null }
         ];
+
+        // --- 1. Kérés: Találós kérdések adatbázisa ---
+        this.riddles = [
+            { q: "Mi az, ami körbeutazza a világot, mégis egy helyben marad?", a: "A Bélyeg" },
+            { q: "Folyamatosan emelkedik de sosem csökken, mi az?", a: "A Korod" },
+            { q: "Ha kimondod a nevem, elmúlok. Mi vagyok?", a: "A Csend" },
+            { q: "Mielőtt felfedezték Mount Everestet, mi volt a világ legmagasabb hegye?", a: "A Mount Everest (csak még nem fedezték fel)" },
+            { q: "20 galamb ül a fán. Egy vadász lelő egyet közülük. Hány galamb maradt a fán?", a: "Egy sem (a többi elrepült)" },
+            { q: "Csak becsukott szemmel látjuk, mi az?", a: "Az álom" },
+            { q: "Édesanyád gyermeke, de neked nem testvéred, ki az?", a: "Te magad" },
+            { q: "Két szomszéd lakik egymás mellett, mindenkit látnak, csak egymást nem. Kik ők?", a: "A szemek" },
+            { q: "Mit vesz az ember legtöbbet a piacon?", a: "Levegőt" },
+            { q: "A tiéd de mégis mások használják többet, mi az?", a: "A neved" }
+        ];
+
+        // Változók a találós kérdés időzítőjéhez
+        this.riddleTimerInterval = null;
+        this.riddleTimeLeft = 15;
 
         // Győzelmi üzenetek
         this.victoryMessages = [
@@ -96,11 +115,12 @@ class BoardGame {
 
     // A pálya és bábuk inicializálása
     init() {
-        this.generateTraps();      // Csapdák elhelyezése
+        this.generateTraps();        // Csapdák elhelyezése
         this.generateChanceFields(); // Szerencsemezők elhelyezése
-        this.renderBoard();        // Pálya kirajzolása a HTML-be
-        this.renderPawns();        // Bábuk elhelyezése
-        this.updateUI();           // UI (név, szín) beállítása
+        this.generateRiddleFields(); // Új: Találós kérdés mezők elhelyezése
+        this.renderBoard();          // Pálya kirajzolása a HTML-be
+        this.renderPawns();          // Bábuk elhelyezése
+        this.updateUI();             // UI (név, szín) beállítása
     }
 
     // Csapdák generálása Fair Play szabályokkal
@@ -159,6 +179,28 @@ class BoardGame {
         }
     }
 
+    // --- Új: Találós kérdés mezők generálása ---
+    generateRiddleFields() {
+        let count = 0;
+        this.riddleFields = {};
+        // 5 darab mező a kérésnek megfelelően
+        while (count < 5) {
+            let rand = Math.floor(Math.random() * (this.boardSize - 5)) + 3; // Start közelébe ne kerüljön
+
+            // Feltétel: Ne legyen ott csapda, szerencse, vagy másik riddle
+            // ÉS ne legyen a közvetlen szomszédban riddle (jól szétosztva)
+            if (!this.traps[rand] && 
+                !this.chanceFields[rand] && 
+                !this.riddleFields[rand] &&
+                !this.riddleFields[rand - 1] &&
+                !this.riddleFields[rand + 1]) {
+                
+                this.riddleFields[rand] = true;
+                count++;
+            }
+        }
+    }
+
     // --- MEGJELENÍTÉS (RENDER) ---
 
     // A pálya kirajzolása HTML elemekből
@@ -170,9 +212,10 @@ class BoardGame {
             const field = document.createElement('div');
             field.className = 'field';
             
-            // CSS osztály hozzáadása ha csapda vagy szerencsemező
+            // CSS osztály hozzáadása ha csapda, szerencsemező vagy riddle
             if (this.traps[i]) field.classList.add('trap');
             if (this.chanceFields[i]) field.classList.add('chance');
+            if (this.riddleFields[i]) field.classList.add('riddle'); // Új osztály
             
             // Tartalom: Start ikon vagy a mező száma
             if (i === 0) field.innerHTML = '<i class="fas fa-flag-checkered"></i>';
@@ -329,7 +372,17 @@ class BoardGame {
             return;
         } 
 
-        // 2. ESET: SZERENCSEMEZŐ
+        // 2. ESET: TALÁLÓS KÉRDÉS (Új logika)
+        if (this.riddleFields[player.pos]) {
+            this.log(`🧠 ${player.name} egy Találós Kérdés mezőre lépett!`);
+            // 2-3 sec várakozás a felugráshoz (itt most 2000ms)
+            setTimeout(() => {
+                this.triggerRiddle();
+            }, 2000);
+            return;
+        }
+
+        // 3. ESET: SZERENCSEMEZŐ
         if (this.chanceFields[player.pos]) {
             this.log(`✨ ${player.name} szerencsés mezőn! Húzz egy kártyát!`);
             btn.disabled = false; // Engedélyezzük a gombot
@@ -337,9 +390,99 @@ class BoardGame {
             return;
         }
 
-        // 3. ESET: ÜRES MEZŐ -> Következő játékos
+        // 4. ESET: ÜRES MEZŐ -> Következő játékos
         this.nextTurn();
     }
+
+    // --- TALÁLÓS KÉRDÉS KEZELÉSE (ÚJ METÓDUSOK) ---
+
+    // Elindítja a találós kérdés folyamatot
+    triggerRiddle() {
+        // Véletlen kérdés kiválasztása
+        const randomRiddle = this.riddles[Math.floor(Math.random() * this.riddles.length)];
+        
+        // UI elemek beállítása
+        const overlay = document.getElementById('riddle-overlay');
+        const cardInner = document.getElementById('riddle-card-inner');
+        const qText = document.getElementById('riddle-question-text');
+        const aText = document.getElementById('riddle-answer-text');
+        
+        // Tartalom kitöltése
+        qText.innerText = randomRiddle.q;
+        aText.innerText = randomRiddle.a;
+
+        // Resetelés: kártya ne legyen forgatva, timer legyen tele
+        cardInner.classList.remove('flipped');
+        
+        // Megjelenítés
+        overlay.classList.remove('hidden');
+
+        // Visszaszámláló indítása
+        this.startRiddleTimer();
+
+        // Ha a játékos rákattint a kártyára (mert nem akarja kivárni), akkor is forduljon
+        // (De csak az elülső oldalra rakunk click eventet, hogy hátul már a gombok döntsenek)
+        const frontFace = document.querySelector('.riddle-front');
+        frontFace.onclick = () => {
+            clearInterval(this.riddleTimerInterval); // Timer stop
+            this.revealRiddleAnswer();
+        };
+    }
+
+    // 15 másodperces visszaszámláló logika
+    startRiddleTimer() {
+        this.riddleTimeLeft = 15;
+        const timerBar = document.getElementById('riddle-timer-bar');
+        const timerText = document.getElementById('timer-text');
+        
+        timerBar.style.width = '100%';
+        timerText.innerText = this.riddleTimeLeft;
+
+        this.riddleTimerInterval = setInterval(() => {
+            this.riddleTimeLeft--;
+            timerText.innerText = this.riddleTimeLeft;
+            
+            // Százalékos szélesség csökkentése
+            const percentage = (this.riddleTimeLeft / 15) * 100;
+            timerBar.style.width = percentage + '%';
+
+            if (this.riddleTimeLeft <= 0) {
+                clearInterval(this.riddleTimerInterval);
+                this.revealRiddleAnswer(); // Idő lejárt -> fordítás
+            }
+        }, 1000);
+    }
+
+    // Kártya megfordítása a válaszhoz
+    revealRiddleAnswer() {
+        const cardInner = document.getElementById('riddle-card-inner');
+        cardInner.classList.add('flipped');
+        
+        // Remove click event from front to avoid double triggers
+        const frontFace = document.querySelector('.riddle-front');
+        frontFace.onclick = null; 
+    }
+
+    // A játékos döntése (Helyes vagy Helytelen)
+    resolveRiddle(isCorrect) {
+        const overlay = document.getElementById('riddle-overlay');
+        const player = this.activePlayers[this.currentPlayerIndex];
+
+        // Overlay elrejtése
+        overlay.classList.add('hidden');
+        
+        if (isCorrect) {
+            this.log(`✅ ${player.name} helyesen válaszolt! <b>Újra dobhat!</b>`);
+            this.isAnimating = false; // Engedélyezzük a dobást
+            // NEM hívunk nextTurn-t, így ugyanaz a játékos jön
+        } else {
+            this.log(`❌ ${player.name} válasza helytelen. <b>Kimarad egy körből!</b>`);
+            player.skipTurn = true; // Büntetés beállítása
+            this.nextTurn(); // Jöhet a következő
+        }
+    }
+
+    // --- EGYÉB JÁTÉKMENET FUNKCIÓK ---
 
     // Szerencsekártya húzása
     drawChanceCard() {
@@ -459,7 +602,7 @@ class BoardGame {
         const title = document.getElementById('gif-title');
         const btn = document.getElementById('winner-btn');
 
-        // 1. Kérés: Gomb elrejtése (Csak győzelemnél kell)
+        // Gomb elrejtése (Csak győzelemnél kell)
         btn.classList.add('hidden'); 
 
         title.innerText = "Jaj ne!";
