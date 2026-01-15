@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Társasjáték - Ultimate GIF Edition</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
@@ -77,27 +77,34 @@
         </div>
     </div>
 
-    <div id="modal" class="modal hidden">
-        <div class="modal-content">
-            <h3 id="modal-title">Cím</h3>
+    <div id="chance-overlay" class="overlay hidden">
+        <div class="card-modal chance-theme">
+            <div class="card-icon-header">
+                <i class="fas fa-clover"></i> </div>
+            <h3 id="chance-title">Szerencsekártya</h3>
             <div class="modal-body-scroll">
-                <p id="modal-text">Szöveg</p>
+                <p id="chance-text">Kártya szövege...</p>
             </div>
-            <button id="modal-ok-btn">Rendben</button>
+            <button id="chance-ok-btn" class="modal-btn">Rendben</button>
         </div>
     </div>
 
     <div id="gif-overlay" class="overlay hidden">
-        <div class="gif-content">
+        <div class="card-modal trap-theme">
+            <div class="card-icon-header">
+                <i class="fas fa-exclamation-triangle"></i> </div>
+            <h2 id="gif-title">Jaj ne!</h2>
+            
             <div class="gif-frame">
                 <img id="gif-image" src="" alt="Jelenet">
             </div>
-            <h2 id="gif-title">Jaj ne!</h2>
+            
             <div class="message-box">
                 <p id="gif-message">Szöveg</p>
             </div>
             
-            <button id="winner-btn" class="hidden" onclick="game.resetGame()">Új Játék Indítása</button>
+            <button id="trap-ok-btn" class="modal-btn hidden">Rendben</button>
+            <button id="winner-btn" class="modal-btn hidden" onclick="game.resetGame()">Új Játék Indítása</button>
         </div>
     </div>
 

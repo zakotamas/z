@@ -4,13 +4,14 @@
     --board-bg: #1e293b;       /* Tábla háttérszín */
     --field-bg: #334155;       /* Mező alapszín */
     --trap-color: #ef4444;     /* Csapda (piros) */
+    --trap-dark: #991b1b;      /* Sötét piros */
     --chance-color: #f59e0b;   /* Szerencse (arany) */
+    --chance-dark: #b45309;    /* Sötét arany/barna */
     --riddle-color: #10b981;   /* Találós kérdés (zöld) */
     --text-color: #f1f5f9;     /* Szövegszín */
     
     /* Neon színek a modern hatáshoz */
     --neon-blue: #3b82f6;
-    --neon-purple: #8b5cf6;
     
     /* Játékos színek */
     --p1-color: #f87171; 
@@ -195,6 +196,15 @@ body {
     z-index: 11;
 }
 
+/* Cél mező kiemelése */
+.field:last-child {
+    background: linear-gradient(135deg, #fbbf24, #b45309);
+    color: white;
+    border: 1px solid #fbbf24;
+    box-shadow: 0 0 15px #fbbf24;
+    z-index: 11;
+}
+
 /* Csapda mező */
 .field.trap {
     border-bottom: 3px solid var(--trap-color);
@@ -218,7 +228,7 @@ body {
     opacity: 0.8;
 }
 
-/* ÚJ: Találós kérdés mező */
+/* Találós kérdés mező */
 .field.riddle {
     border-bottom: 3px solid var(--riddle-color);
     background: linear-gradient(145deg, #064e3b, #1e293b);
@@ -388,8 +398,9 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Modals */
-.modal, .overlay {
+/* --- OVERLAY ÉS CARD STÍLUSOK (ÚJ) --- */
+
+.overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85);
@@ -402,75 +413,134 @@ body {
     transition: opacity 0.3s;
 }
 
-.modal.hidden, .overlay.hidden {
+.overlay.hidden {
     opacity: 0;
     pointer-events: none;
 }
 
-.modal-content, .gif-content {
-    background: #1e293b;
-    width: 90%;
-    max-width: 400px;
-    border-radius: 15px;
+/* Kártya alap kinézet */
+.card-modal {
+    width: 320px;
+    border-radius: 20px;
+    padding: 0 0 20px 0;
     text-align: center;
+    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 0 40px rgba(0,0,0,0.5);
-    padding-bottom: 20px;
+    position: relative;
+    border: 3px solid transparent;
 }
 
-.modal-content h3 {
-    background: rgba(255,255,255,0.05);
-    padding: 15px;
+/* SZERENCSE TÉMA */
+.chance-theme {
+    background: linear-gradient(160deg, #1e293b, #0f172a);
+    border-color: var(--chance-color);
+}
+.chance-theme .card-icon-header {
+    background: linear-gradient(90deg, var(--chance-color), #fcd34d);
+    color: #78350f;
+}
+.chance-theme h3 {
     color: var(--chance-color);
 }
-
-.modal-body-scroll {
-    padding: 20px;
-    max-height: 40vh;
-    overflow-y: auto;
+.chance-theme .modal-btn {
+    background: var(--chance-color);
+}
+.chance-theme .modal-btn:hover {
+    background: var(--chance-dark);
 }
 
+/* CSAPDA / GIF TÉMA */
+.trap-theme {
+    background: linear-gradient(160deg, #1e293b, #0f172a);
+    border-color: var(--trap-color);
+    width: 380px; /* Szélesebb a GIF miatt */
+    max-width: 90%;
+}
+.trap-theme .card-icon-header {
+    background: linear-gradient(90deg, var(--trap-color), #f87171);
+    color: #fff;
+}
+.trap-theme h2 {
+    color: var(--trap-color);
+    margin: 10px 0;
+}
+.trap-theme .modal-btn {
+    background: var(--trap-color);
+}
+.trap-theme .modal-btn:hover {
+    background: var(--trap-dark);
+}
+
+/* Ikon a kártya tetején */
+.card-icon-header {
+    padding: 20px;
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Szöveges tartalom */
+.modal-body-scroll {
+    padding: 20px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+/* GIF keret */
 .gif-frame {
     background: black;
     min-height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin: 0 15px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
 }
-
 #gif-image {
     width: 100%;
-    max-height: 300px;
+    max-height: 250px;
 }
 
-#gif-title {
-    margin: 15px 0;
-    color: var(--trap-color);
-    text-transform: uppercase;
+.message-box {
+    padding: 15px 20px;
+    color: #cbd5e1;
 }
 
-.message-box { padding: 0 20px; color: #cbd5e1; }
-
-#modal-ok-btn, #winner-btn {
-    margin-top: 15px;
+/* Gombok */
+.modal-btn {
+    margin: 10px auto 0;
     padding: 10px 30px;
-    background: var(--neon-blue);
     border: none;
     color: white;
     border-radius: 50px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 1rem;
+    width: 80%;
+    transition: transform 0.2s;
 }
+.modal-btn:hover {
+    transform: scale(1.05);
+}
+.hidden { display: none; }
 
-#winner-btn.hidden { display: none; }
 
-/* --- ÚJ: RIDDLE (TALÁLÓS KÉRDÉS) STÍLUSOK --- */
+/* --- RIDDLE (TALÁLÓS KÉRDÉS) STÍLUSOK --- */
 
 .riddle-card-container {
     width: 320px;
     height: 450px;
-    perspective: 1000px; /* A 3D forgatáshoz kell */
+    perspective: 1000px; 
 }
 
 .riddle-card-inner {
@@ -482,7 +552,6 @@ body {
     transform-style: preserve-3d;
 }
 
-/* Ez az osztály fordítja meg a kártyát */
 .riddle-card-inner.flipped {
     transform: rotateY(180deg);
 }
@@ -491,7 +560,7 @@ body {
     position: absolute;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden; /* Elrejti a hátlapot */
+    backface-visibility: hidden;
     border-radius: 20px;
     box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
     display: flex;
@@ -500,17 +569,15 @@ body {
     border: 2px solid var(--riddle-color);
 }
 
-/* Elülső oldal dizájn */
 .riddle-front {
     background: linear-gradient(145deg, #064e3b, #0f172a);
     color: #fff;
 }
 
-/* Hátsó oldal dizájn */
 .riddle-back {
     background: linear-gradient(145deg, #1e293b, #0f172a);
     color: #fff;
-    transform: rotateY(180deg); /* Alapból forgatva van */
+    transform: rotateY(180deg);
 }
 
 .riddle-header {
@@ -532,7 +599,6 @@ body {
     line-height: 1.5;
 }
 
-/* Időzítő stílusok */
 .timer-container {
     padding: 20px;
     text-align: center;
@@ -547,7 +613,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* Ez a csík fog fogyni */
 #riddle-timer-bar {
     width: 100%;
     height: 100%;
@@ -567,7 +632,6 @@ body {
     margin-bottom: 15px;
 }
 
-/* Gombok a hátoldalon */
 .riddle-controls {
     padding: 20px;
     background: rgba(0,0,0,0.2);

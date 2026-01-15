@@ -1,9 +1,10 @@
 // --- JÁTÉK OSZTÁLY LÉTREHOZÁSA ---
 class BoardGame {
     constructor() {
-        // --- 4. Kérés: Részletes kommentek hozzáadása ---
+        // --- 4. Kérés: Részletes kommentek ---
         
-        // A pálya teljes hossza (50 mező: 0-tól 49-ig)
+        // A pálya teljes hossza (50 mező: 0-tól 49-ig).
+        // 0 = Start, 49 = Cél
         this.boardSize = 50;
         
         // Játékosok adatbázisa (ID, név, szín, pozíció, kimaradás státusz)
@@ -24,11 +25,9 @@ class BoardGame {
         // Objektumok a csapdák, szerencsemezők és találós kérdések tárolására (kulcs = mező indexe)
         this.traps = {}; 
         this.chanceFields = {}; 
-        this.riddleFields = {}; // Új: Tároló a találós kérdés mezőknek
+        this.riddleFields = {}; 
 
         // Szerencsekártyák listája
-        // action: 'bonus' (újradobás), 'skip' (kimaradás), null (csak mozgás)
-        // move: pozitív szám (előre), negatív szám (hátra)
         this.chanceCards = [
             { text: "Találtál egy titkos átjárót! Lépj előre 2 mezőt.", move: 2, action: null },
             { text: "Elfelejtetted a kulcsodat. Lépj vissza 1 mezőt.", move: -1, action: null },
@@ -41,7 +40,7 @@ class BoardGame {
             { text: "Leesett a térkép a kezedből. Lépj vissza 2 mezőt.", move: -2, action: null }
         ];
 
-        // --- 1. Kérés: Találós kérdések adatbázisa ---
+        // Találós kérdések adatbázisa
         this.riddles = [
             { q: "Mi az, ami körbeutazza a világot, mégis egy helyben marad?", a: "A Bélyeg" },
             { q: "Folyamatosan emelkedik de sosem csökken, mi az?", a: "A Korod" },
@@ -78,18 +77,17 @@ class BoardGame {
             { file: "treppegif.gif", text: "A lépcsőház fantomja gáncsolt el. Au!" }
         ];
 
-        // Jelzi, hogy épp mozgásban van-e bábu (ilyenkor tiltjuk a gombokat)
+        // Jelzi, hogy épp mozgásban van-e bábu
         this.isAnimating = false;
         // Itt tároljuk a szerencsekártya hatását, amit az OK gomb után hajtunk végre
         this.pendingCardAction = null; 
 
-        // Böngésző frissítés elleni védelem aktiválása
+        // Böngésző frissítés elleni védelem
         this.addReloadProtection();
     }
 
     // --- SEGÉDFÜGGVÉNYEK ---
 
-    // Megakadályozza az oldal véletlen bezárását/frissítését
     addReloadProtection() {
         window.addEventListener('beforeunload', (e) => {
             e.preventDefault(); 
@@ -99,64 +97,50 @@ class BoardGame {
 
     // --- JÁTÉK INDÍTÁSA ÉS GENERÁLÁS ---
 
-    // A játék indítása a választott játékosszámmal
     startGame(numPlayers) {
-        // Kiválasztjuk az első N játékost a listából
         this.activePlayers = this.allPlayers.slice(0, numPlayers);
-        // Eltüntetjük a kezdőképernyőt
         document.getElementById('setup-screen').style.display = 'none';
-        // Megjelenítjük a játékteret
         document.getElementById('main-game-container').classList.remove('hidden');
-        // Inicializálás (pálya generálás)
         this.init();
-        // Üzenet a naplóba
         this.log(`A játék elkezdődött ${numPlayers} játékossal! Sok sikert!`);
     }
 
-    // A pálya és bábuk inicializálása
     init() {
-        this.generateTraps();        // Csapdák elhelyezése
-        this.generateChanceFields(); // Szerencsemezők elhelyezése
-        this.generateRiddleFields(); // Új: Találós kérdés mezők elhelyezése
-        this.renderBoard();          // Pálya kirajzolása a HTML-be
-        this.renderPawns();          // Bábuk elhelyezése
-        this.updateUI();             // UI (név, szín) beállítása
+        this.generateTraps();
+        this.generateChanceFields();
+        this.generateRiddleFields();
+        this.renderBoard();
+        this.renderPawns();
+        this.updateUI();
     }
 
-    // Csapdák generálása Fair Play szabályokkal
+    // Csapdák generálása
     generateTraps() {
         this.traps = {};
-        const maxTraps = 12; // Maximum csapda szám
+        const maxTraps = 12;
         
-        // Lehetséges mezők listája (az első 5 mezőt kihagyjuk a biztonságos startért)
         let possibleIndices = [];
         for (let i = 5; i < this.boardSize - 1; i++) {
             possibleIndices.push(i);
         }
 
-        // Tömb véletlenszerű keverése (Fisher-Yates algoritmus)
+        // Keverés
         for (let i = possibleIndices.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [possibleIndices[i], possibleIndices[j]] = [possibleIndices[j], possibleIndices[i]];
         }
 
         let placedCount = 0;
-        // Végigmegyünk a kevert listán és lerakjuk a csapdákat
         for (let index of possibleIndices) {
-            if (placedCount >= maxTraps) break; // Ha elértük a limitet, stop
-
-            // Szabály: Ne legyen csapda a szomszédos 2 mezőben (hogy ne legyen túl nehéz)
-            if (!this.traps[index - 1] && 
-                !this.traps[index - 2] && 
-                !this.traps[index + 1] && 
-                !this.traps[index + 2]) {
+            if (placedCount >= maxTraps) break;
+            
+            // Távolságtartás
+            if (!this.traps[index - 1] && !this.traps[index - 2] && 
+                !this.traps[index + 1] && !this.traps[index + 2]) {
                 
-                // Véletlen büntetés (-1 vagy -2)
                 const penaltyValue = -1 * (Math.floor(Math.random() * 2) + 1);
-                // Véletlen GIF kiválasztása
                 const selectedGif = this.gifData[Math.floor(Math.random() * this.gifData.length)];
                 
-                // Csapda mentése
                 this.traps[index] = { penalty: penaltyValue, gif: selectedGif };
                 placedCount++;
             }
@@ -167,11 +151,8 @@ class BoardGame {
     generateChanceFields() {
         let count = 0;
         this.chanceFields = {};
-        // Max 12 szerencsemező
         while (count < 12) { 
             let rand = Math.floor(Math.random() * (this.boardSize - 2)) + 1;
-            
-            // Csak oda rakunk, ahol nincs csapda és nincs még szerencsemező
             if (!this.traps[rand] && !this.chanceFields[rand]) {
                 this.chanceFields[rand] = true;
                 count++;
@@ -179,16 +160,12 @@ class BoardGame {
         }
     }
 
-    // --- Új: Találós kérdés mezők generálása ---
+    // Találós kérdés mezők generálása
     generateRiddleFields() {
         let count = 0;
         this.riddleFields = {};
-        // 5 darab mező a kérésnek megfelelően
         while (count < 5) {
-            let rand = Math.floor(Math.random() * (this.boardSize - 5)) + 3; // Start közelébe ne kerüljön
-
-            // Feltétel: Ne legyen ott csapda, szerencse, vagy másik riddle
-            // ÉS ne legyen a közvetlen szomszédban riddle (jól szétosztva)
+            let rand = Math.floor(Math.random() * (this.boardSize - 5)) + 3;
             if (!this.traps[rand] && 
                 !this.chanceFields[rand] && 
                 !this.riddleFields[rand] &&
@@ -203,30 +180,25 @@ class BoardGame {
 
     // --- MEGJELENÍTÉS (RENDER) ---
 
-    // A pálya kirajzolása HTML elemekből
     renderBoard() {
         const boardEl = document.getElementById('game-board');
-        boardEl.innerHTML = ''; // Töröljük az előző tartalmat
+        boardEl.innerHTML = '';
         
         for (let i = 0; i < this.boardSize; i++) {
             const field = document.createElement('div');
             field.className = 'field';
             
-            // CSS osztály hozzáadása ha csapda, szerencsemező vagy riddle
             if (this.traps[i]) field.classList.add('trap');
             if (this.chanceFields[i]) field.classList.add('chance');
-            if (this.riddleFields[i]) field.classList.add('riddle'); // Új osztály
+            if (this.riddleFields[i]) field.classList.add('riddle');
             
-            // Tartalom: Start ikon vagy a mező száma
-            if (i === 0) field.innerHTML = '<i class="fas fa-flag-checkered"></i>';
+            if (i === 0) field.innerHTML = '<i class="fas fa-flag-checkered"></i>'; // Start
+            else if (i === this.boardSize - 1) field.innerHTML = '<i class="fas fa-trophy"></i>'; // Cél
             else field.innerText = i;
             
-            // Pozíció kiszámítása (top/left százalék)
             const pos = this.calculatePosition(i);
             field.style.left = pos.left + '%';
             field.style.top = pos.top + '%';
-            
-            // Méretezés (7.6% szélesség, hogy elférjen 13 db egy sorban)
             field.style.width = '7.6%'; 
             field.style.height = '7.6%'; 
             
@@ -234,57 +206,50 @@ class BoardGame {
         }
     }
 
-    // Mező pozíciójának kiszámolása (Spirál alakzat)
+    // Spirál pozíció számítás
     calculatePosition(index) {
         const fieldSize = 7.6; 
-        const maxDist = 100 - fieldSize; // A rendelkezésre álló hely
+        const maxDist = 100 - fieldSize;
         
-        // 1. Felső sor (Start -> Jobb felső sarok)
-        if (index <= 12) {
-            return { left: (index / 12) * maxDist, top: 0 };
-        }
-        // 2. Jobb oldal (Lefelé)
+        // 1. Felső sor
+        if (index <= 12) return { left: (index / 12) * maxDist, top: 0 };
+        // 2. Jobb oldal
         else if (index <= 24) {
             const step = index - 12; 
             return { left: maxDist, top: (step / 13) * maxDist };
         }
-        // 3. Alsó sor (Balra)
+        // 3. Alsó sor
         else if (index <= 37) {
             const step = index - 25;
             return { left: maxDist - ((step / 12) * maxDist), top: maxDist };
         }
-        // 4. Bal oldal (Felfelé)
+        // 4. Bal oldal
         else {
             const step = index - 37;
             return { left: 0, top: maxDist - ((step / 13) * maxDist) };
         }
     }
 
-    // Játékos bábuk létrehozása
     renderPawns() {
         const boardEl = document.getElementById('game-board');
         this.activePlayers.forEach(p => {
-            // Megnézzük, létezik-e már a bábu div
             let pawn = document.getElementById(`pawn-${p.id}`);
             if (!pawn) {
-                // Ha nem, létrehozzuk
                 pawn = document.createElement('div');
                 pawn.id = `pawn-${p.id}`;
                 pawn.className = `pawn p${p.id}`;
                 boardEl.appendChild(pawn);
             }
-            // Pozíció frissítése
             this.movePawnVisuals(p);
         });
     }
 
-    // Bábu vizuális mozgatása a képernyőn
     movePawnVisuals(player) {
         const pawn = document.getElementById(`pawn-${player.id}`);
         const posCoords = this.calculatePosition(player.pos);
         
-        // Eltolás számítása, hogy a bábuk ne fedjék egymást teljesen (kis mátrix)
-        const offsetVal = 4; // pixel
+        // Eltolás, hogy ne fedjék egymást
+        const offsetVal = 4;
         const offsets = [
             {x: -offsetVal, y: -offsetVal}, {x: offsetVal, y: -offsetVal},
             {x: -offsetVal, y: 0},          {x: offsetVal, y: 0},
@@ -292,52 +257,56 @@ class BoardGame {
         ];
         const currentOffset = offsets[player.id - 1] || {x:0, y:0};
 
-        // CSS calc() használata a pontos pozicionáláshoz
         pawn.style.left = `calc(${posCoords.left}% + 3.8% - 6px + ${currentOffset.x}px)`;
         pawn.style.top = `calc(${posCoords.top}% + 3.8% - 6px + ${currentOffset.y}px)`;
     }
 
     // --- JÁTÉKMENET LOGIKA ---
 
-    // Kockadobás kezelése
     handleRoll(value) {
-        if (this.isAnimating) return; // Ha épp mozog valaki, nem lehet kattintani
+        if (this.isAnimating) return;
         const player = this.activePlayers[this.currentPlayerIndex];
         
         this.log(`🎲 <b>${player.name}</b> dobott: <b>${value}</b>`);
         this.movePlayer(player, value);
     }
 
-    // Játékos léptetése (logika + animáció)
+    // 1. Kérés: Pontos dobás logika és visszapattanás
     async movePlayer(player, steps) {
-        this.isAnimating = true; // Animáció kezdete
+        this.isAnimating = true;
         
-        let potentialPos = player.pos + steps;
-        
-        // Győzelem feltétel: Csak ha előrefelé lépi át a pálya végét
-        if (steps > 0 && potentialPos >= this.boardSize) {
-            player.pos = 0; // Célba ért
-            this.movePawnVisuals(player);
-            this.handleWin(player);
-            return;
+        // Hova lépne, ha nem lenne pálya vége?
+        let targetPos = player.pos + steps;
+        const goalIndex = this.boardSize - 1; // 49
+
+        // Visszapattanás ellenőrzés
+        if (steps > 0) { // Csak ha előre megyünk
+            if (targetPos > goalIndex) {
+                // Túldobás! Kiszámoljuk mennyivel.
+                const overshoot = targetPos - goalIndex;
+                const bounceBackPos = goalIndex - overshoot;
+                
+                this.log(`⚠️ Túlmentél! Visszalépsz ${overshoot} mezőt.`);
+                
+                // Beállítjuk az új pozíciót a visszapattanás után
+                targetPos = bounceBackPos;
+            } else if (targetPos === goalIndex) {
+                // PONTOS ÉRKEZÉS = GYŐZELEM
+                player.pos = goalIndex;
+                this.movePawnVisuals(player);
+                this.handleWin(player);
+                return;
+            }
+        } else {
+            // Ha negatív a steps (pl. csapda miatt visszafelé), akkor nincs bounce logika
+            targetPos = Math.max(0, targetPos);
         }
 
-        let newPos = potentialPos;
-        
-        // Visszalépés kezelése (Csapda vagy kártya)
-        if (steps < 0) {
-            // Nem mehet a 0 (Start) alá
-            newPos = Math.max(0, newPos);
-        } else {
-            // Normál lépés (modulo nem kell, mert a győzelmet fentebb kezeltük, de biztosíték)
-            newPos = newPos % this.boardSize;
-        }
-        
-        // Új pozíció mentése és bábu frissítése
-        player.pos = newPos;
+        // Pozíció frissítése
+        player.pos = targetPos;
         this.movePawnVisuals(player);
 
-        // Kis késleltetés, hogy a játékos lássa hova lépett, mielőtt jön az effekt
+        // Késleltetés, majd mező effekt ellenőrzés
         setTimeout(() => {
             this.checkFieldEffect(player);
         }, 800);
@@ -346,36 +315,31 @@ class BoardGame {
     // Mező hatásának ellenőrzése
     checkFieldEffect(player) {
         const btn = document.getElementById('draw-card-btn');
-        btn.disabled = true; // Alapból tiltjuk a kártyahúzást
+        btn.disabled = true;
 
         // 1. ESET: CSAPDA
         if (this.traps[player.pos]) {
             const trapData = this.traps[player.pos];
-            // Kiszámoljuk, mennyit tud visszalépni (max a Startig)
             const possibleStepsBack = Math.min(Math.abs(trapData.penalty), player.pos);
             const finalPenalty = -possibleStepsBack;
 
-            // Megmutatjuk a GIF-et
+            // Új GIF megjelenítő hívása
             this.showGifOverlay(trapData.gif, player, possibleStepsBack, () => {
-                // Callback: Ha lejár a GIF vagy OK-t nyomnak
                 if (finalPenalty !== 0) {
                     this.log(`⚠️ ${player.name} visszalép ${possibleStepsBack} mezőt.`);
-                    // Visszaléptetjük a játékost
                     setTimeout(() => {
                         this.movePlayer(player, finalPenalty);
                     }, 500);
                 } else {
-                    // Ha nem tud visszalépni (Starton áll), jöhet a következő
                     this.nextTurn();
                 }
             });
             return;
         } 
 
-        // 2. ESET: TALÁLÓS KÉRDÉS (Új logika)
+        // 2. ESET: TALÁLÓS KÉRDÉS
         if (this.riddleFields[player.pos]) {
             this.log(`🧠 ${player.name} egy Találós Kérdés mezőre lépett!`);
-            // 2-3 sec várakozás a felugráshoz (itt most 2000ms)
             setTimeout(() => {
                 this.triggerRiddle();
             }, 2000);
@@ -385,51 +349,40 @@ class BoardGame {
         // 3. ESET: SZERENCSEMEZŐ
         if (this.chanceFields[player.pos]) {
             this.log(`✨ ${player.name} szerencsés mezőn! Húzz egy kártyát!`);
-            btn.disabled = false; // Engedélyezzük a gombot
-            this.isAnimating = false; // Várakozunk a felhasználóra
+            btn.disabled = false;
+            this.isAnimating = false;
             return;
         }
 
-        // 4. ESET: ÜRES MEZŐ -> Következő játékos
+        // 4. ESET: ÜRES MEZŐ
         this.nextTurn();
     }
 
-    // --- TALÁLÓS KÉRDÉS KEZELÉSE (ÚJ METÓDUSOK) ---
+    // --- TALÁLÓS KÉRDÉS MODUL ---
 
-    // Elindítja a találós kérdés folyamatot
     triggerRiddle() {
-        // Véletlen kérdés kiválasztása
         const randomRiddle = this.riddles[Math.floor(Math.random() * this.riddles.length)];
         
-        // UI elemek beállítása
         const overlay = document.getElementById('riddle-overlay');
         const cardInner = document.getElementById('riddle-card-inner');
         const qText = document.getElementById('riddle-question-text');
         const aText = document.getElementById('riddle-answer-text');
         
-        // Tartalom kitöltése
         qText.innerText = randomRiddle.q;
         aText.innerText = randomRiddle.a;
 
-        // Resetelés: kártya ne legyen forgatva, timer legyen tele
         cardInner.classList.remove('flipped');
-        
-        // Megjelenítés
         overlay.classList.remove('hidden');
 
-        // Visszaszámláló indítása
         this.startRiddleTimer();
 
-        // Ha a játékos rákattint a kártyára (mert nem akarja kivárni), akkor is forduljon
-        // (De csak az elülső oldalra rakunk click eventet, hogy hátul már a gombok döntsenek)
         const frontFace = document.querySelector('.riddle-front');
         frontFace.onclick = () => {
-            clearInterval(this.riddleTimerInterval); // Timer stop
+            clearInterval(this.riddleTimerInterval);
             this.revealRiddleAnswer();
         };
     }
 
-    // 15 másodperces visszaszámláló logika
     startRiddleTimer() {
         this.riddleTimeLeft = 15;
         const timerBar = document.getElementById('riddle-timer-bar');
@@ -442,177 +395,152 @@ class BoardGame {
             this.riddleTimeLeft--;
             timerText.innerText = this.riddleTimeLeft;
             
-            // Százalékos szélesség csökkentése
             const percentage = (this.riddleTimeLeft / 15) * 100;
             timerBar.style.width = percentage + '%';
 
             if (this.riddleTimeLeft <= 0) {
                 clearInterval(this.riddleTimerInterval);
-                this.revealRiddleAnswer(); // Idő lejárt -> fordítás
+                this.revealRiddleAnswer();
             }
         }, 1000);
     }
 
-    // Kártya megfordítása a válaszhoz
     revealRiddleAnswer() {
         const cardInner = document.getElementById('riddle-card-inner');
         cardInner.classList.add('flipped');
-        
-        // Remove click event from front to avoid double triggers
         const frontFace = document.querySelector('.riddle-front');
         frontFace.onclick = null; 
     }
 
-    // A játékos döntése (Helyes vagy Helytelen)
     resolveRiddle(isCorrect) {
         const overlay = document.getElementById('riddle-overlay');
         const player = this.activePlayers[this.currentPlayerIndex];
 
-        // Overlay elrejtése
         overlay.classList.add('hidden');
         
         if (isCorrect) {
             this.log(`✅ ${player.name} helyesen válaszolt! <b>Újra dobhat!</b>`);
-            this.isAnimating = false; // Engedélyezzük a dobást
-            // NEM hívunk nextTurn-t, így ugyanaz a játékos jön
+            this.isAnimating = false; 
         } else {
             this.log(`❌ ${player.name} válasza helytelen. <b>Kimarad egy körből!</b>`);
-            player.skipTurn = true; // Büntetés beállítása
-            this.nextTurn(); // Jöhet a következő
+            player.skipTurn = true;
+            this.nextTurn();
         }
     }
 
-    // --- EGYÉB JÁTÉKMENET FUNKCIÓK ---
+    // --- SZERENCSEKÁRTYA ÉS EGYÉB FUNKCIÓK ---
 
-    // Szerencsekártya húzása
     drawChanceCard() {
         const btn = document.getElementById('draw-card-btn');
-        if (btn.disabled) return; // Biztonsági ellenőrzés
+        if (btn.disabled) return;
         btn.disabled = true;
 
-        // Véletlen kártya választása
         const card = this.chanceCards[Math.floor(Math.random() * this.chanceCards.length)];
         const player = this.activePlayers[this.currentPlayerIndex];
         
         this.log(`🎫 ${player.name} húzott: "${card.text}"`);
 
-        // Callback beállítása: Ez a kód fut le, ha a játékos megnyomja a "Rendben" gombot a felugró ablakon
+        // Callback a kártya hatásához
         this.pendingCardAction = () => {
-            // Bónusz dobás
             if (card.action === 'bonus') {
                 this.isAnimating = false;
                 this.log(`🎉 ${player.name} újra dobhat!`);
-                return; // Nem hívunk nextTurn-t, mert ugyanaz jön
+                return;
             }
-
-            // Kimaradás
             if (card.action === 'skip') {
                 player.skipTurn = true;
                 this.nextTurn();
                 return;
             }
-
-            // Mozgás (előre vagy hátra)
             if (card.move !== 0) {
                 this.isAnimating = true;
                 setTimeout(() => {
                     this.movePlayer(player, card.move);
                 }, 500);
             } else {
-                // Ha nincs extra hatás
                 this.nextTurn();
             }
         };
 
-        // Modal megjelenítése
-        this.showModal('Szerencsekártya', card.text, this.pendingCardAction);
+        // ÚJ: Kártya stílusú megjelenítés
+        this.showChanceCardModal(card.text, this.pendingCardAction);
     }
 
-    // Következő játékosra váltás
     nextTurn() {
         document.getElementById('draw-card-btn').disabled = true;
         
-        // Következő index kiszámítása
         let nextIndex = (this.currentPlayerIndex + 1) % this.activePlayers.length;
         let nextPlayer = this.activePlayers[nextIndex];
 
-        // Kimaradás ellenőrzése
         if (nextPlayer.skipTurn) {
             this.log(`🚫 <b>${nextPlayer.name}</b> kimarad ebből a körből.`);
-            nextPlayer.skipTurn = false; // Reseteljük a kimaradást
-            
-            // Rekurzívan hívjuk a következőt, mivel ez a játékos kimarad
+            nextPlayer.skipTurn = false;
             this.currentPlayerIndex = nextIndex;
             this.nextTurn(); 
             return;
         }
 
-        // Aktív játékos beállítása
         this.currentPlayerIndex = nextIndex;
         this.updateUI();
         this.isAnimating = false;
     }
 
-    // UI (Felület) frissítése
     updateUI() {
         const player = this.activePlayers[this.currentPlayerIndex];
         const nameEl = document.getElementById('player-name');
         const boxEl = document.getElementById('player-indicator-box');
         
         nameEl.innerText = player.name;
-        // Színek beállítása a játékoshoz
         nameEl.style.color = player.color;
         boxEl.style.borderTopColor = player.color;
         boxEl.style.boxShadow = `0 0 15px ${player.color}40`;
     }
 
-    // Üzenet írása a naplóba
     log(message) {
         const logEl = document.getElementById('game-log');
         const p = document.createElement('p');
         p.innerHTML = message;
-        logEl.prepend(p); // Új üzenet a tetejére
+        logEl.prepend(p);
     }
 
-    // Modal (Szöveges felugró ablak) megjelenítése
-    showModal(title, text, callback) {
-        document.getElementById('modal-title').innerText = title;
-        document.getElementById('modal-text').innerText = text;
-        const modal = document.getElementById('modal');
-        const okBtn = document.getElementById('modal-ok-btn');
+    // 2. Kérés: Új Szerencsekártya megjelenítő (Lóhere dizájn)
+    showChanceCardModal(text, callback) {
+        const overlay = document.getElementById('chance-overlay');
+        const content = document.getElementById('chance-text');
+        const btn = document.getElementById('chance-ok-btn');
 
-        // Gomb klónozása az eseményfigyelők törléséhez
-        const newBtn = okBtn.cloneNode(true);
-        okBtn.parentNode.replaceChild(newBtn, okBtn);
+        content.innerText = text;
 
-        // Új klikk esemény hozzáadása
+        // Eseménykezelő cseréje
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+
         newBtn.onclick = () => {
-            modal.classList.add('hidden');
-            if (callback) callback(); // Ha van teendő, végrehajtjuk
+            overlay.classList.add('hidden');
+            if (callback) callback();
         };
 
-        modal.classList.remove('hidden');
+        overlay.classList.remove('hidden');
     }
 
-    // GIF overlay (Teljes képernyős csapda/győzelem) megjelenítése
+    // 2.1 Kérés: Új GIF/Csapda megjelenítő (Veszély kártya dizájn)
     showGifOverlay(gifObj, player, stepsBack, callback) {
         const overlay = document.getElementById('gif-overlay');
         const img = document.getElementById('gif-image');
         const msg = document.getElementById('gif-message');
         const title = document.getElementById('gif-title');
-        const btn = document.getElementById('winner-btn');
+        const okBtn = document.getElementById('trap-ok-btn');
+        const winBtn = document.getElementById('winner-btn');
 
-        // Gomb elrejtése (Csak győzelemnél kell)
-        btn.classList.add('hidden'); 
+        // Gombok kezelése (Csak OK gomb kell most, kivéve ha win)
+        winBtn.classList.add('hidden'); 
+        okBtn.classList.remove('hidden');
 
         title.innerText = "Jaj ne!";
-        title.style.color = "#ef4444"; // Piros
-
-        // Kép betöltése
+        
         img.src = `gif/${gifObj.file}`;
-        img.onerror = () => { img.src = 'img/logo.png'; }; // Ha nincs gif, fallback
+        img.onerror = () => { img.src = 'img/logo.png'; };
 
-        // Szöveg összeállítása
         let textInfo = gifObj.text;
         if (stepsBack > 0) {
             textInfo += `<br><br><b style="color:#f87171;">${player.name} lépjen vissza ${stepsBack} mezőt!</b>`;
@@ -620,45 +548,48 @@ class BoardGame {
             textInfo += `<br><br><b>${player.name} megúszta a visszalépést!</b>`;
         }
         msg.innerHTML = textInfo;
+
+        // Callback beállítása az OK gombra
+        const newBtn = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newBtn, okBtn);
+        
+        newBtn.onclick = () => {
+            overlay.classList.add('hidden');
+            // Kép törlése delay után
+            setTimeout(() => { img.src = ""; }, 300);
+            if (callback) callback();
+        };
         
         overlay.classList.remove('hidden');
-
-        // Automatikus bezárás 5 másodperc után
-        setTimeout(() => {
-            overlay.classList.add('hidden');
-            setTimeout(() => {
-                img.src = ""; 
-                if (callback) callback();
-            }, 300);
-        }, 5000); 
     }
 
-    // Győzelem kezelése
+    // Győzelem kezelése (itt használjuk a GIF overlay-t, de más gombbal)
     handleWin(player) {
         const randomMsg = this.victoryMessages[Math.floor(Math.random() * this.victoryMessages.length)];
-        const randomWinNum = Math.floor(Math.random() * 12) + 1; // Véletlen győzelmi gif
+        const randomWinNum = Math.floor(Math.random() * 12) + 1;
         const gifFile = `winner/w${randomWinNum}.gif`;
 
         const overlay = document.getElementById('gif-overlay');
         const img = document.getElementById('gif-image');
         const msg = document.getElementById('gif-message');
         const title = document.getElementById('gif-title');
-        const btn = document.getElementById('winner-btn');
+        const okBtn = document.getElementById('trap-ok-btn');
+        const winBtn = document.getElementById('winner-btn');
 
         title.innerText = "GYŐZELEM!";
-        title.style.color = "#fbbf24"; // Arany
         
         img.src = gifFile;
         img.onerror = () => { img.src = 'img/logo.png'; };
 
         msg.innerHTML = `<b>${player.name}</b> beért a célba!<br><br><span style="color:#fbbf24;">"${randomMsg}"</span>`;
         
-        // Itt megjelenítjük a gombot, mert vége a játéknak
-        btn.classList.remove('hidden'); 
+        // Gombok cseréje: OK eltűnik, Új Játék megjelenik
+        okBtn.classList.add('hidden');
+        winBtn.classList.remove('hidden'); 
+        
         overlay.classList.remove('hidden');
     }
 
-    // Játék újraindítása
     resetGame() {
         location.reload();
     }

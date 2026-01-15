@@ -1,0 +1,31 @@
+Aktuális Játékszabályok Összefoglalója:
+
+
+
+Játékosok: 2-6 fő játszhat. Mindenki saját színű bábuval lép.
+
+Pálya: 50 mezőből áll (0-tól 49-ig). Spirál alakban rendeződik el.
+
+Haladás: Kockadobással (1-6) lehet előrehaladni.
+
+Győzelem (ÚJ!):
+
+A célmezőre (49-es index) kizárólag pontos dobással lehet megérkezni.
+
+Ha többet dobsz a kelleténél, a "felesleget" visszafelé léped le a céltól visszapattanva.
+
+Mezőtípusok:
+
+Normál mező: Semmi extra nem történik.
+
+Csapda (Piros): Ha rálépsz, egy vicces/fájdalmas GIF kíséretében visszalépsz véletlenszerűen 1 vagy 2 mezőt.
+
+Szerencsemező (Arany): Ha rálépsz, húznod kell egy szerencsekártyát (Lóhere ikonnal). Ez adhat bónusz dobást, előre/hátra lépést vagy kimaradást.
+
+Találós Kérdés (Zöld): Ha rálépsz, 2 másodperc múlva felugrik egy kártya. 15 másodperced van válaszolni a kérdésre.
+
+Helyes válasz: Újra dobhatsz.
+
+Helytelen válasz / Idő lejárt: Kimaradsz egy körből.
+
+Kimaradás: Bizonyos effektek (kártya, rossz válasz) miatt a játékos a következő körben nem dobhat.
