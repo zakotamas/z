@@ -211,6 +211,16 @@ body {
     background: linear-gradient(145deg, #451a1a, #1e293b);
     color: var(--trap-color);
 }
+/* 1. Kérés: Ikon a csapda mező jobb felső sarkában */
+.field.trap::after {
+    content: '\f12a'; /* Felkiáltójel ikon */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    position: absolute;
+    top: 2px; right: 3px;
+    font-size: 0.6em;
+    opacity: 0.8;
+}
 
 /* Szerencse mező */
 .field.chance {
@@ -220,7 +230,7 @@ body {
 }
 .field.chance::after {
     content: '\f005'; /* Csillag */
-    font-family: 'Font Awesome 5 Free';
+    font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     position: absolute;
     top: 2px; right: 2px;
@@ -291,10 +301,25 @@ body {
     border-top: 4px solid transparent;
 }
 
-#player-name {
+/* 3. Kérés: Szerkeszthető név input stílusa */
+#player-name-input {
+    width: 100%;
+    background: transparent;
+    border: none;
     font-size: 1.4rem;
     font-weight: bold;
+    color: inherit; /* Örökli a szülő (játékos) színét */
+    text-align: center;
     text-shadow: 0 2px 4px black;
+    outline: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+    padding-bottom: 2px;
+}
+
+#player-name-input:focus {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .dice-input-section {
@@ -626,10 +651,12 @@ body {
     color: var(--riddle-color);
 }
 
+/* 4. Kérés: Szöveg lejjebb tolása, hogy a timer ne takarja */
 .hint-text {
     font-size: 0.8rem;
     color: #94a3b8;
     margin-bottom: 15px;
+    margin-top: 15px; /* Javítás */
 }
 
 .riddle-controls {

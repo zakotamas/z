@@ -1,8 +1,6 @@
 // --- JÁTÉK OSZTÁLY LÉTREHOZÁSA ---
 class BoardGame {
     constructor() {
-        // --- 4. Kérés: Részletes kommentek ---
-        
         // A pálya teljes hossza (50 mező: 0-tól 49-ig).
         // 0 = Start, 49 = Cél
         this.boardSize = 50;
@@ -82,8 +80,9 @@ class BoardGame {
         // Itt tároljuk a szerencsekártya hatását, amit az OK gomb után hajtunk végre
         this.pendingCardAction = null; 
 
-        // Böngésző frissítés elleni védelem
+        // Böngésző frissítés elleni védelem és input kezelő inicializálása
         this.addReloadProtection();
+        this.initNameInputListener();
     }
 
     // --- SEGÉDFÜGGVÉNYEK ---
@@ -93,6 +92,24 @@ class BoardGame {
             e.preventDefault(); 
             e.returnValue = 'Biztosan újra akarod tölteni az oldalt?';
         });
+    }
+
+    // 3. Kérés: Név szerkesztés figyelése
+    initNameInputListener() {
+        const input = document.getElementById('player-name-input');
+        
+        // Amikor a játékos gépel, frissítjük az adatbázist
+        input.addEventListener('input', (e) => {
+            if (this.activePlayers.length > 0) {
+                // Az aktuális játékos nevét frissítjük
+                const currentPlayer = this.activePlayers[this.currentPlayerIndex];
+                currentPlayer.name = e.target.value;
+            }
+        });
+
+        // Kattintás és érintés események kezelése, hogy a fókusz működjön
+        input.addEventListener('click', () => { input.focus(); });
+        input.addEventListener('touchstart', () => { input.focus(); });
     }
 
     // --- JÁTÉK INDÍTÁSA ÉS GENERÁLÁS ---
@@ -211,22 +228,26 @@ class BoardGame {
         const fieldSize = 7.6; 
         const maxDist = 100 - fieldSize;
         
+        // 5. Kérés: A 49-es (Cél) mező a 0-ra (Start) kerüljön, bezárva a kört
+        if (index === 49) return { left: 0, top: 0 };
+
         // 1. Felső sor
         if (index <= 12) return { left: (index / 12) * maxDist, top: 0 };
         // 2. Jobb oldal
         else if (index <= 24) {
             const step = index - 12; 
-            return { left: maxDist, top: (step / 13) * maxDist };
+            return { left: maxDist, top: (step / 12) * maxDist };
         }
         // 3. Alsó sor
         else if (index <= 37) {
-            const step = index - 25;
-            return { left: maxDist - ((step / 12) * maxDist), top: maxDist };
+            const step = index - 24; // Javítva indexelés, hogy pontosabb legyen
+            return { left: maxDist - ((step / 13) * maxDist), top: maxDist };
         }
         // 4. Bal oldal
         else {
             const step = index - 37;
-            return { left: 0, top: maxDist - ((step / 13) * maxDist) };
+            // Itt a 12-es osztóval korrigáljuk, hogy a spirál vége "felérjen" a start alá
+            return { left: 0, top: maxDist - ((step / 12) * maxDist) };
         }
     }
 
@@ -271,45 +292,57 @@ class BoardGame {
         this.movePlayer(player, value);
     }
 
-    // 1. Kérés: Pontos dobás logika és visszapattanás
+    // 2. Kérés: Animált visszapattanás túldobás esetén
     async movePlayer(player, steps) {
         this.isAnimating = true;
         
-        // Hova lépne, ha nem lenne pálya vége?
         let targetPos = player.pos + steps;
         const goalIndex = this.boardSize - 1; // 49
 
-        // Visszapattanás ellenőrzés
-        if (steps > 0) { // Csak ha előre megyünk
+        if (steps > 0) { // Előre mozgás
             if (targetPos > goalIndex) {
-                // Túldobás! Kiszámoljuk mennyivel.
+                // TÚLDOBÁS ESETÉN
                 const overshoot = targetPos - goalIndex;
                 const bounceBackPos = goalIndex - overshoot;
                 
                 this.log(`⚠️ Túlmentél! Visszalépsz ${overshoot} mezőt.`);
                 
-                // Beállítjuk az új pozíciót a visszapattanás után
+                // 1. Lépés: Elmegyünk a célig
+                player.pos = goalIndex;
+                this.movePawnVisuals(player);
+                
+                // 2. Lépés: Várunk az animációra (0.5s CSS transition + kicsi extra)
+                await new Promise(r => setTimeout(r, 600));
+
+                // 3. Lépés: Visszapattanunk az új helyre
+                player.pos = bounceBackPos;
+                this.movePawnVisuals(player);
+                
+                // Frissítjük a célpozíció változót a visszapattanás utánira
                 targetPos = bounceBackPos;
+
             } else if (targetPos === goalIndex) {
-                // PONTOS ÉRKEZÉS = GYŐZELEM
+                // GYŐZELEM (Pontos érkezés)
                 player.pos = goalIndex;
                 this.movePawnVisuals(player);
                 this.handleWin(player);
                 return;
+            } else {
+                // Normál lépés előre (nincs célbaérés, nincs túldobás)
+                player.pos = targetPos;
+                this.movePawnVisuals(player);
             }
         } else {
-            // Ha negatív a steps (pl. csapda miatt visszafelé), akkor nincs bounce logika
+            // Visszafelé lépés (csapda miatt) - itt nincs bounce logika
             targetPos = Math.max(0, targetPos);
+            player.pos = targetPos;
+            this.movePawnVisuals(player);
         }
-
-        // Pozíció frissítése
-        player.pos = targetPos;
-        this.movePawnVisuals(player);
 
         // Késleltetés, majd mező effekt ellenőrzés
         setTimeout(() => {
             this.checkFieldEffect(player);
-        }, 800);
+        }, 600);
     }
 
     // Mező hatásának ellenőrzése
@@ -342,7 +375,7 @@ class BoardGame {
             this.log(`🧠 ${player.name} egy Találós Kérdés mezőre lépett!`);
             setTimeout(() => {
                 this.triggerRiddle();
-            }, 2000);
+            }, 1000);
             return;
         }
 
@@ -487,11 +520,13 @@ class BoardGame {
 
     updateUI() {
         const player = this.activePlayers[this.currentPlayerIndex];
-        const nameEl = document.getElementById('player-name');
+        const inputEl = document.getElementById('player-name-input');
         const boxEl = document.getElementById('player-indicator-box');
         
-        nameEl.innerText = player.name;
-        nameEl.style.color = player.color;
+        // 3. Kérés: Input érték frissítése az aktuális játékos nevére
+        inputEl.value = player.name;
+        inputEl.style.color = player.color;
+        
         boxEl.style.borderTopColor = player.color;
         boxEl.style.boxShadow = `0 0 15px ${player.color}40`;
     }
