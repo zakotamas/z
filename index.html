@@ -14,12 +14,48 @@
             <img src="img/logo.png" alt="Játék Logo" class="game-logo">
             <h1>Üdvözöllek a játékban!</h1>
             <p>Hányan szeretnétek játszani?</p>
+            
             <div class="player-buttons">
                 <button onclick="game.startGame(2)">2 Játékos</button>
                 <button onclick="game.startGame(3)">3 Játékos</button>
                 <button onclick="game.startGame(4)">4 Játékos</button>
                 <button onclick="game.startGame(5)">5 Játékos</button>
                 <button onclick="game.startGame(6)">6 Játékos</button>
+            </div>
+
+            <button class="rules-btn" onclick="game.toggleRules(true)">
+                <i class="fas fa-book-open"></i> Játékszabály
+            </button>
+
+            <div class="ad-section">
+                <p class="ad-label">Szponzorált tartalom (Forgass meg!):</p>
+                <div class="scene">
+                    <div class="cube" id="ad-cube">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="rules-overlay" class="overlay hidden">
+        <div class="rules-modal">
+            <div class="rules-header">
+                <h2><i class="fas fa-scroll"></i> Játékszabály</h2>
+                <button class="close-rules" onclick="game.toggleRules(false)"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="rules-body">
+                <h3>A játék célja</h3>
+                <p>Juss el elsőként a Start mezőről a Célba! A játékot kockadobással és szerencsével (vagy balszerencsével) kell megnyerned.</p>
+                
+                <h3>Szabályok</h3>
+                <ul>
+                    <li>A játékosok felváltva dobnak a kockával.</li>
+                    <li><strong>Csapdák:</strong> Ha piros mezőre lépsz, visszacsúszol vagy büntetést kapsz.</li>
+                    <li><strong>Szerencsemezők:</strong> Ha arany mezőre lépsz, húzol egy kártyát, ami segíthet vagy hátráltathat.</li>
+                    <li><strong>Találós kérdések:</strong> A zöld mezőkön az agyadat kell használnod. Ha helyes a válasz, újra dobhatsz!</li>
+                    <li><strong>Túldobás:</strong> Ha többet dobsz a kelleténél, visszapattansz a célról!</li>
+                </ul>
+                <p class="fun-note">Jó szórakozást és ne feledd: Nem kell mindig jól járni!</p>
             </div>
         </div>
     </div>
@@ -46,7 +82,7 @@
             <div class="current-player-info">
                 <h2>Soron lévő (Neved átírható):</h2>
                 <div id="player-indicator-box" class="player-indicator-box">
-                    <input type="text" id="player-name-input" maxlength="10" value="Játékos 1" autocomplete="off">
+                    <input type="text" id="player-name-input" maxlength="12" value="Játékos 1" autocomplete="off">
                 </div>
             </div>
 
@@ -78,7 +114,7 @@
     </div>
 
     <div id="chance-overlay" class="overlay hidden">
-        <div class="card-modal chance-theme">
+        <div class="card-modal chance-theme extended-width">
             <div class="card-icon-header">
                 <i class="fas fa-clover"></i> </div>
             <h3 id="chance-title">Szerencsekártya</h3>

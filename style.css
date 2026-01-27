@@ -20,6 +20,9 @@
     --p4-color: #fbbf24; 
     --p5-color: #d946ef; 
     --p6-color: #22d3ee; 
+
+    /* Kocka reklám mérete */
+    --cube-size: 100px;
 }
 
 /* Reset és alap betűtípus */
@@ -61,6 +64,9 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
     max-width: 90%;
+    width: 500px;
+    position: relative;
+    overflow: visible; /* A kocka miatt */
 }
 
 .game-logo {
@@ -74,6 +80,7 @@ body {
     justify-content: center;
     flex-wrap: wrap;
     margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 .player-buttons button {
@@ -90,6 +97,174 @@ body {
 .player-buttons button:hover {
     background: var(--neon-blue);
     transform: translateY(-3px);
+}
+
+/* 4. KÉRÉS: Játékszabály gomb */
+.rules-btn {
+    display: block;
+    margin: 10px auto;
+    background: transparent;
+    border: 1px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.rules-btn:hover {
+    background: var(--neon-blue);
+    color: white;
+    box-shadow: 0 0 10px var(--neon-blue);
+}
+
+/* 6. KÉRÉS: 3D Reklám Kocka CSS */
+.ad-section {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    perspective: 800px; /* Térhatás */
+}
+
+.ad-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.scene {
+    width: var(--cube-size);
+    height: var(--cube-size);
+    position: relative;
+    cursor: grab;
+}
+
+.scene:active {
+    cursor: grabbing;
+}
+
+.cube {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: translateZ(calc(var(--cube-size) / -2));
+    /* Kezdőállapot */
+}
+
+.cube-face {
+    position: absolute;
+    width: var(--cube-size);
+    height: var(--cube-size);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+    user-select: none;
+    cursor: pointer;
+}
+
+/* Kocka oldalak pozicionálása */
+.face-front  { transform: rotateY(  0deg) translateZ(calc(var(--cube-size) / 2)); }
+.face-right  { transform: rotateY( 90deg) translateZ(calc(var(--cube-size) / 2)); }
+.face-back   { transform: rotateY(180deg) translateZ(calc(var(--cube-size) / 2)); }
+.face-left   { transform: rotateY(-90deg) translateZ(calc(var(--cube-size) / 2)); }
+.face-top    { transform: rotateX( 90deg) translateZ(calc(var(--cube-size) / 2)); }
+.face-bottom { transform: rotateX(-90deg) translateZ(calc(var(--cube-size) / 2)); }
+
+/* Játékszabály Modal Modern Dizájn */
+.rules-modal {
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--neon-blue);
+    box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+    width: 600px;
+    max-width: 90%;
+    max-height: 80vh;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    animation: modalPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPopIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.rules-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, rgba(59,130,246,0.1), transparent);
+}
+
+.rules-header h2 {
+    color: var(--neon-blue);
+    font-size: 1.5rem;
+}
+
+.close-rules {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.close-rules:hover { color: white; transform: rotate(90deg); }
+
+.rules-body {
+    padding: 30px;
+    overflow-y: auto;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #e2e8f0;
+}
+
+.rules-body h3 {
+    color: var(--chance-color);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+    padding-bottom: 5px;
+    display: inline-block;
+}
+.rules-body h3:first-child { margin-top: 0; }
+
+.rules-body ul {
+    list-style-type: none;
+    margin-left: 10px;
+}
+
+.rules-body li {
+    margin-bottom: 10px;
+    padding-left: 15px;
+    border-left: 3px solid var(--neon-blue);
+}
+
+.fun-note {
+    margin-top: 20px;
+    font-style: italic;
+    color: #94a3b8;
+    text-align: center;
+    font-weight: bold;
 }
 
 /* --- FŐ JÁTÉK CONTÉNER --- */
@@ -211,7 +386,6 @@ body {
     background: linear-gradient(145deg, #451a1a, #1e293b);
     color: var(--trap-color);
 }
-/* 1. Kérés: Ikon a csapda mező jobb felső sarkában */
 .field.trap::after {
     content: '\f12a'; /* Felkiáltójel ikon */
     font-family: 'Font Awesome 6 Free';
@@ -301,14 +475,13 @@ body {
     border-top: 4px solid transparent;
 }
 
-/* 3. Kérés: Szerkeszthető név input stílusa */
 #player-name-input {
     width: 100%;
     background: transparent;
     border: none;
     font-size: 1.4rem;
     font-weight: bold;
-    color: inherit; /* Örökli a szülő (játékos) színét */
+    color: inherit; 
     text-align: center;
     text-shadow: 0 2px 4px black;
     outline: none;
@@ -389,10 +562,11 @@ body {
 }
 
 /* Log */
+/* 3. KÉRÉS: Napló magasság növelése */
 .game-log-container {
     display: flex;
     flex-direction: column;
-    height: 180px; 
+    height: 250px; /* Megnövelve */
 }
 
 .game-log-container h3 {
@@ -423,7 +597,7 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-/* --- OVERLAY ÉS CARD STÍLUSOK (ÚJ) --- */
+/* --- OVERLAY ÉS CARD STÍLUSOK --- */
 
 .overlay {
     position: fixed;
@@ -457,6 +631,12 @@ body {
     border: 3px solid transparent;
 }
 
+/* 5. KÉRÉS: Egységes szélesség a Trap/Gif témához */
+.extended-width {
+    width: 380px !important;
+    max-width: 90%;
+}
+
 /* SZERENCSE TÉMA */
 .chance-theme {
     background: linear-gradient(160deg, #1e293b, #0f172a);
@@ -468,6 +648,8 @@ body {
 }
 .chance-theme h3 {
     color: var(--chance-color);
+    margin-top: 15px; /* Kicsit több hely */
+    font-size: 1.5rem;
 }
 .chance-theme .modal-btn {
     background: var(--chance-color);
@@ -480,7 +662,7 @@ body {
 .trap-theme {
     background: linear-gradient(160deg, #1e293b, #0f172a);
     border-color: var(--trap-color);
-    width: 380px; /* Szélesebb a GIF miatt */
+    width: 380px; 
     max-width: 90%;
 }
 .trap-theme .card-icon-header {
@@ -511,7 +693,7 @@ body {
 /* Szöveges tartalom */
 .modal-body-scroll {
     padding: 20px;
-    min-height: 80px;
+    min-height: 100px; /* Egységesített magasság */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -651,12 +833,11 @@ body {
     color: var(--riddle-color);
 }
 
-/* 4. Kérés: Szöveg lejjebb tolása, hogy a timer ne takarja */
 .hint-text {
     font-size: 0.8rem;
     color: #94a3b8;
     margin-bottom: 15px;
-    margin-top: 15px; /* Javítás */
+    margin-top: 15px;
 }
 
 .riddle-controls {
@@ -706,5 +887,14 @@ body {
 
     .controls {
         width: 100%;
+    }
+
+    /* Kocka kicsinyítés mobilon */
+    .setup-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    :root {
+        --cube-size: 80px;
     }
 }
