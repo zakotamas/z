@@ -21,8 +21,8 @@
     --p5-color: #d946ef; 
     --p6-color: #22d3ee; 
 
-    /* Kocka reklám mérete */
-    --cube-size: 100px;
+    /* Kocka reklám mérete (megnövelve) */
+    --cube-size: 120px;
 }
 
 /* Reset és alap betűtípus */
@@ -101,7 +101,7 @@ body {
 
 /* 4. KÉRÉS: Játékszabály gomb */
 .rules-btn {
-    display: block;
+    display: inline-block;
     margin: 10px auto;
     background: transparent;
     border: 1px solid var(--neon-blue);
@@ -126,7 +126,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    perspective: 800px; /* Térhatás */
+    perspective: 1200px; /* Térhatás */
 }
 
 .ad-label {
@@ -142,19 +142,21 @@ body {
     height: var(--cube-size);
     position: relative;
     cursor: grab;
+    perspective: 1200px;
 }
 
 .scene:active {
     cursor: grabbing;
 }
 
+/* .cube kezdő translateZ eltávolítva, a JS adja hozzá a transform sorrendet */
 .cube {
     width: 100%;
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transform: translateZ(calc(var(--cube-size) / -2));
-    /* Kezdőállapot */
+    /* Kezdőállapot: JS állítja be a translateZ + rot értékeket */
+    transition: transform 0.12s linear;
 }
 
 .cube-face {
@@ -265,6 +267,13 @@ body {
     color: #94a3b8;
     text-align: center;
     font-weight: bold;
+}
+
+.rules-footer {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid rgba(255,255,255,0.03);
 }
 
 /* --- FŐ JÁTÉK CONTÉNER --- */
@@ -607,9 +616,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 200;
+    z-index: 200; /* alap overlay z-index */
     opacity: 1;
     transition: opacity 0.3s;
+}
+
+/* A játékszabály overlay magasabb z-index-re emelve, hogy setup alatt is látható legyen */
+#rules-overlay {
+    z-index: 800;
 }
 
 .overlay.hidden {
@@ -895,6 +909,6 @@ body {
         overflow-y: auto;
     }
     :root {
-        --cube-size: 80px;
+        --cube-size: 100px;
     }
 }

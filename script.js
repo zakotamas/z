@@ -109,6 +109,7 @@ class BoardGame {
     // Név szerkesztés figyelése
     initNameInputListener() {
         const input = document.getElementById('player-name-input');
+        if (!input) return;
         
         // Amikor a játékos gépel, frissítjük az adatbázist
         input.addEventListener('input', (e) => {
@@ -127,8 +128,13 @@ class BoardGame {
     // 4. KÉRÉS: Játékszabály modal kezelése
     toggleRules(show) {
         const modal = document.getElementById('rules-overlay');
+        if (!modal) return;
+
         if (show) {
+            // Győződjünk meg róla, hogy a modal úgy jelenik meg, hogy látható legyen akár a setup felett is
             modal.classList.remove('hidden');
+            // Kissé lassabb fade-in a jobb érzésért
+            setTimeout(() => modal.style.opacity = '1', 10);
         } else {
             modal.classList.add('hidden');
         }
@@ -137,19 +143,34 @@ class BoardGame {
     // --- 6. KÉRÉS: REKLÁM KOCKA LOGIKA (AD CUBE) ---
     initAdCube() {
         const cube = document.getElementById('ad-cube');
+        if (!cube) return;
+
+        // Töröljük, ha vannak régi oldalak (pl. újrainicializálás esetén)
+        cube.innerHTML = '';
+
+        // Fontos: a reklám mappában legyenek:
+        // lead_800x450.jpg, lead_800x450_2.jpg, ..., lead_800x450_6.jpg
+        const imageNames = [
+            'reklam/lead_800x450.jpg',
+            'reklam/lead_800x450_2.jpg',
+            'reklam/lead_800x450_3.jpg',
+            'reklam/lead_800x450_4.jpg',
+            'reklam/lead_800x450_5.jpg',
+            'reklam/lead_800x450_6.jpg'
+        ];
+
         const sides = ['front', 'back', 'right', 'left', 'top', 'bottom'];
-        const imagePath = 'reklam/lead_800x450.jpg';
         
-        // Oldalak létrehozása
-        sides.forEach(side => {
+        // Oldalak létrehozása, mindegyikre másik kép
+        sides.forEach((side, idx) => {
             const face = document.createElement('div');
             face.className = `cube-face face-${side}`;
-            
-            // Kép betöltése, fallback szöveggel
+
+            const imgPath = imageNames[idx] || imageNames[0];
             const img = new Image();
-            img.src = imagePath;
+            img.src = imgPath;
             img.onload = () => {
-                face.style.backgroundImage = `url('${imagePath}')`;
+                face.style.backgroundImage = `url('${imgPath}')`;
             };
             img.onerror = () => {
                 face.innerText = "KIADÓ FELÜLET";
@@ -164,6 +185,9 @@ class BoardGame {
 
             cube.appendChild(face);
         });
+
+        // Kezdeti transzform beállítása
+        this.updateCubeTransform();
 
         // Eseményfigyelők a forgatáshoz
         const scene = document.querySelector('.scene');
@@ -207,11 +231,10 @@ class BoardGame {
             startY = e.touches[0].pageY;
             this.adAutoRotate = false;
             clearInterval(this.adAutoRotateTimer);
-        });
+        }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
-            // e.preventDefault(); // Opcionális: megakadályozza a görgetést forgatás közben
             const deltaX = e.touches[0].pageX - startX;
             const deltaY = e.touches[0].pageY - startY;
             
@@ -222,7 +245,7 @@ class BoardGame {
             
             startX = e.touches[0].pageX;
             startY = e.touches[0].pageY;
-        });
+        }, { passive: true });
 
         document.addEventListener('touchend', () => {
             if (isDragging) {
@@ -237,7 +260,10 @@ class BoardGame {
 
     updateCubeTransform() {
         const cube = document.getElementById('ad-cube');
-        cube.style.transform = `rotateX(${this.adCubeRotX}deg) rotateY(${this.adCubeRotY}deg)`;
+        if (!cube) return;
+        // A translateZ biztosítja, hogy az oldalak körül legyenek pozícionálva.
+        // A JS itt adja hozzá, így nem írjuk felül a CSS-ben lévő oldal-transzformokat.
+        cube.style.transform = `translateZ(calc(var(--cube-size) / -2)) rotateX(${this.adCubeRotX}deg) rotateY(${this.adCubeRotY}deg)`;
     }
 
     startAdAutoRotation() {
@@ -266,6 +292,8 @@ class BoardGame {
         document.getElementById('main-game-container').classList.remove('hidden');
         this.init();
         this.log(`A játék elkezdődött ${numPlayers} játékossal! Sok sikert!`);
+        // Update name input listener in case it was initialized before players were set
+        this.initNameInputListener();
     }
 
     init() {
@@ -492,7 +520,7 @@ class BoardGame {
     // Mező hatásának ellenőrzése
     checkFieldEffect(player) {
         const btn = document.getElementById('draw-card-btn');
-        btn.disabled = true;
+        if (btn) btn.disabled = true;
 
         // 1. ESET: CSAPDA
         if (this.traps[player.pos]) {
@@ -526,7 +554,7 @@ class BoardGame {
         // 3. ESET: SZERENCSEMEZŐ
         if (this.chanceFields[player.pos]) {
             this.log(`✨ ${player.name} szerencsés mezőn! Húzz egy kártyát!`); // Tegeződés
-            btn.disabled = false;
+            if (btn) btn.disabled = false;
             this.isAnimating = false;
             return;
         }
@@ -618,8 +646,8 @@ class BoardGame {
 
     drawChanceCard() {
         const btn = document.getElementById('draw-card-btn');
-        if (btn.disabled) return;
-        btn.disabled = true;
+        if (btn && btn.disabled) return;
+        if (btn) btn.disabled = true;
 
         const card = this.chanceCards[Math.floor(Math.random() * this.chanceCards.length)];
         const player = this.activePlayers[this.currentPlayerIndex];
@@ -653,7 +681,8 @@ class BoardGame {
     }
 
     nextTurn() {
-        document.getElementById('draw-card-btn').disabled = true;
+        const drawBtn = document.getElementById('draw-card-btn');
+        if (drawBtn) drawBtn.disabled = true;
         
         let nextIndex = (this.currentPlayerIndex + 1) % this.activePlayers.length;
         let nextPlayer = this.activePlayers[nextIndex];
@@ -677,25 +706,32 @@ class BoardGame {
         const boxEl = document.getElementById('player-indicator-box');
         
         // Input érték frissítése az aktuális játékos nevére
-        inputEl.value = player.name;
-        inputEl.style.color = player.color;
+        if (inputEl) {
+            inputEl.value = player.name;
+            inputEl.style.color = player.color;
+        }
         
-        boxEl.style.borderTopColor = player.color;
-        boxEl.style.boxShadow = `0 0 15px ${player.color}40`;
+        if (boxEl) {
+            boxEl.style.borderTopColor = player.color;
+            boxEl.style.boxShadow = `0 0 15px ${player.color}40`;
+        }
     }
 
     log(message) {
         const logEl = document.getElementById('game-log');
+        if (!logEl) return;
         const p = document.createElement('p');
         p.innerHTML = message;
         logEl.prepend(p);
     }
 
-    // Új Szerencsekártya megjelenítő (Lóhere dizájn)
+    // Új Szerencsekártya megjelen��tő (Lóhere dizájn)
     showChanceCardModal(text, callback) {
         const overlay = document.getElementById('chance-overlay');
         const content = document.getElementById('chance-text');
         const btn = document.getElementById('chance-ok-btn');
+
+        if (!overlay || !content || !btn) return;
 
         content.innerText = text;
 
@@ -720,9 +756,14 @@ class BoardGame {
         const okBtn = document.getElementById('trap-ok-btn');
         const winBtn = document.getElementById('winner-btn');
 
+        if (!overlay || !img || !msg || !title) {
+            if (callback) callback();
+            return;
+        }
+
         // Gombok kezelése
-        winBtn.classList.add('hidden'); 
-        okBtn.classList.remove('hidden');
+        if (winBtn) winBtn.classList.add('hidden'); 
+        if (okBtn) okBtn.classList.remove('hidden');
 
         title.innerText = "Jaj ne!";
         
@@ -731,8 +772,9 @@ class BoardGame {
 
         let textInfo = gifObj.text;
         if (stepsBack > 0) {
-            textInfo += `<br><br><b style="color:#f87171;">${player.name} lépjen vissza ${stepsBack} mezőt!</b>`; // Formális, de hibaüzenetben elmegy, vagy átírhatjuk: "lépj vissza"
-            textInfo = textInfo.replace('lépjen', 'lépj'); // Javítás tegeződésre
+            textInfo += `<br><br><b style="color:#f87171;">${player.name} lépj vissza ${stepsBack} mezőt!</b>`;
+            // biztos, hogy tegező formában jelenik meg:
+            textInfo = textInfo.replace('lépjen', 'lépj');
         } else {
             textInfo += `<br><br><b>${player.name} megúszta a visszalépést!</b>`;
         }
@@ -765,6 +807,8 @@ class BoardGame {
         const okBtn = document.getElementById('trap-ok-btn');
         const winBtn = document.getElementById('winner-btn');
 
+        if (!overlay || !img || !msg || !title) return;
+
         title.innerText = "GYŐZELEM!";
         
         img.src = gifFile;
@@ -773,8 +817,8 @@ class BoardGame {
         msg.innerHTML = `<b>${player.name}</b> beért a célba!<br><br><span style="color:#fbbf24;">"${randomMsg}"</span>`;
         
         // Gombok cseréje
-        okBtn.classList.add('hidden');
-        winBtn.classList.remove('hidden'); 
+        if (okBtn) okBtn.classList.add('hidden');
+        if (winBtn) winBtn.classList.remove('hidden'); 
         
         overlay.classList.remove('hidden');
     }

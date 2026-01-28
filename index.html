@@ -31,7 +31,8 @@
                 <p class="ad-label">Szponzorált tartalom (Forgass meg!):</p>
                 <div class="scene">
                     <div class="cube" id="ad-cube">
-                        </div>
+                        <!-- Faces are injected by script.js -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -56,6 +57,11 @@
                     <li><strong>Túldobás:</strong> Ha többet dobsz a kelleténél, visszapattansz a célról!</li>
                 </ul>
                 <p class="fun-note">Jó szórakozást és ne feledd: Nem kell mindig jól járni!</p>
+            </div>
+
+            <!-- Értettem gomb (lezárás) -->
+            <div class="rules-footer">
+                <button class="modal-btn rules-ok" onclick="game.toggleRules(false)">Értettem</button>
             </div>
         </div>
     </div>
@@ -83,6 +89,13 @@
                 <h2>Soron lévő (Neved átírható):</h2>
                 <div id="player-indicator-box" class="player-indicator-box">
                     <input type="text" id="player-name-input" maxlength="12" value="Játékos 1" autocomplete="off">
+                </div>
+
+                <!-- Játékszabály gomb elérhető játék közben is -->
+                <div style="margin-top:10px; text-align:center;">
+                    <button class="rules-btn" onclick="game.toggleRules(true)">
+                        <i class="fas fa-book-open"></i> Játékszabály
+                    </button>
                 </div>
             </div>
 
