@@ -151,12 +151,12 @@ class BoardGame {
         // Fontos: a reklám mappában legyenek:
         // lead_800x450.jpg, lead_800x450_2.jpg, ..., lead_800x450_6.jpg
         const imageNames = [
-            'reklam/lead_800x450.jpg',
-            'reklam/lead_800x450_2.jpg',
-            'reklam/lead_800x450_3.jpg',
-            'reklam/lead_800x450_4.jpg',
-            'reklam/lead_800x450_5.jpg',
-            'reklam/lead_800x450_6.jpg'
+            'reklam/MD.png',
+            'reklam/lego.png',
+            'reklam/jateknet.png',
+            'reklam/nn.png',
+            'reklam/reflex.jpg',
+            'reklam/'
         ];
 
         const sides = ['front', 'back', 'right', 'left', 'top', 'bottom'];
