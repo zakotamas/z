@@ -89,12 +89,22 @@ class BoardGame {
         this.adAutoRotate = true;
         this.adAutoRotateTimer = null;
 
+        // --- INTERAKTÍV DOBÓKOCKA vezérlő változók ---
+        this.isDiceRolling = false;      // Épp pörög-e a kocka
+        this.diceRotX = 0;               // Kocka aktuális X elforgatása (nyugalmi állapotban)
+        this.diceRotY = 0;               // Kocka aktuális Y elforgatása (nyugalmi állapotban)
+        this.diceMotionEnabled = false;  // Engedélyezve van-e a telefon rázás érzékelése
+        this.lastShakeTime = 0;          // Utolsó rázás időbélyege (spam védelem)
+
         // Böngésző frissítés elleni védelem és input kezelő inicializálása
         this.addReloadProtection();
         this.initNameInputListener();
         
         // 6. KÉRÉS: Kocka inicializálása
         this.initAdCube();
+
+        // ÚJ: Interaktív dobókocka inicializálása
+        this.initDiceModal();
     }
 
     // --- SEGÉDFÜGGVÉNYEK ---
@@ -458,11 +468,208 @@ class BoardGame {
     // --- JÁTÉKMENET LOGIKA ---
 
     handleRoll(value) {
-        if (this.isAnimating) return;
+        // Ez a manuális (tartalék) dobás-kezelő, a kézi gombokhoz.
+        if (this.isAnimating || this.isDiceRolling) return;
         const player = this.activePlayers[this.currentPlayerIndex];
-        
+
         this.log(`🎲 <b>${player.name}</b> dobott: <b>${value}</b>`);
+        this.closeDiceModal();
         this.movePlayer(player, value);
+    }
+
+    // --- ÚJ: INTERAKTÍV 3D DOBÓKOCKA MODUL ---
+
+    // Modal megnyitása (a "Dobás" gombra kattintva)
+    openDiceModal() {
+        if (this.isAnimating || this.isDiceRolling) return;
+
+        const overlay = document.getElementById('dice-overlay');
+        const cube = document.getElementById('dice-cube');
+        const resultText = document.getElementById('dice-result-text');
+        if (!overlay || !cube) return;
+
+        // Nyugalmi, enyhén megdöntött állapot, hogy látszódjon a 3D hatás
+        this.diceRotX = -20;
+        this.diceRotY = 30;
+        cube.style.transition = 'none';
+        cube.style.transform = `rotateX(${this.diceRotX}deg) rotateY(${this.diceRotY}deg)`;
+
+        if (resultText) resultText.innerText = '';
+
+        overlay.classList.remove('hidden');
+        this.tryEnableMotion();
+    }
+
+    closeDiceModal() {
+        const overlay = document.getElementById('dice-overlay');
+        if (overlay) overlay.classList.add('hidden');
+    }
+
+    // Eseményfigyelők egyszeri beállítása (kattintás, húzás/pörgetés, rázás)
+    initDiceModal() {
+        const scene = document.getElementById('dice-scene');
+        const cube = document.getElementById('dice-cube');
+        if (!scene || !cube) return;
+
+        let isDragging = false;
+        let dragMoved = false;
+        let startX = 0, startY = 0;
+
+        const startDrag = (x, y) => {
+            if (this.isDiceRolling) return;
+            isDragging = true;
+            dragMoved = false;
+            startX = x;
+            startY = y;
+        };
+
+        const moveDrag = (x, y) => {
+            if (!isDragging || this.isDiceRolling) return;
+            const dx = x - startX;
+            const dy = y - startY;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+
+            this.diceRotY += dx * 0.6;
+            this.diceRotX -= dy * 0.6;
+
+            cube.style.transition = 'none';
+            cube.style.transform = `rotateX(${this.diceRotX}deg) rotateY(${this.diceRotY}deg)`;
+
+            startX = x;
+            startY = y;
+        };
+
+        const endDrag = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            // Akár csak megérintették, akár meg is pörgették ujjal/egérrel: ez dobást indít
+            this.rollDice();
+        };
+
+        // Egér
+        scene.addEventListener('mousedown', (e) => startDrag(e.pageX, e.pageY));
+        window.addEventListener('mousemove', (e) => moveDrag(e.pageX, e.pageY));
+        window.addEventListener('mouseup', endDrag);
+
+        // Érintés (mobil - "ujjal pörgetés")
+        scene.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            startDrag(t.pageX, t.pageY);
+        }, { passive: true });
+
+        scene.addEventListener('touchmove', (e) => {
+            const t = e.touches[0];
+            moveDrag(t.pageX, t.pageY);
+        }, { passive: true });
+
+        scene.addEventListener('touchend', endDrag);
+
+        // Telefon megrázása
+        window.addEventListener('devicemotion', (e) => this.handleDeviceMotion(e));
+    }
+
+    // iOS-en a mozgásérzékelő külön engedélyt igényel, ezt kezeljük
+    tryEnableMotion() {
+        const btn = document.getElementById('enable-motion-btn');
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            if (btn) btn.classList.remove('hidden');
+        } else {
+            // Androidon / desktopon nincs szükség külön engedélyre
+            this.diceMotionEnabled = true;
+            if (btn) btn.classList.add('hidden');
+        }
+    }
+
+    requestMotionPermission() {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            DeviceMotionEvent.requestPermission().then((state) => {
+                if (state === 'granted') {
+                    this.diceMotionEnabled = true;
+                    const btn = document.getElementById('enable-motion-btn');
+                    if (btn) btn.classList.add('hidden');
+                }
+            }).catch(() => { /* engedély megtagadva, nem gond, marad a kattintás/húzás */ });
+        }
+    }
+
+    handleDeviceMotion(e) {
+        if (!this.diceMotionEnabled || this.isDiceRolling) return;
+
+        const overlay = document.getElementById('dice-overlay');
+        if (!overlay || overlay.classList.contains('hidden')) return;
+
+        const acc = e.accelerationIncludingGravity || e.acceleration;
+        if (!acc) return;
+
+        const magnitude = Math.abs(acc.x || 0) + Math.abs(acc.y || 0) + Math.abs(acc.z || 0);
+        const now = Date.now();
+
+        // Elég erős mozdulat + legalább 1.5mp telt el az előző rázás óta
+        if (magnitude > 35 && now - this.lastShakeTime > 1500) {
+            this.lastShakeTime = now;
+            this.rollDice();
+        }
+    }
+
+    // A tényleges "dobás": kb. 2-2.5 másodpercig pörög, majd random eredményt ad,
+    // és ugyanúgy folytatja a játékot, mint korábban a kézi gombok.
+    rollDice() {
+        if (this.isDiceRolling || this.isAnimating) return;
+        this.isDiceRolling = true;
+
+        if (navigator.vibrate) navigator.vibrate(60);
+
+        const cube = document.getElementById('dice-cube');
+        const resultText = document.getElementById('dice-result-text');
+        if (!cube) { this.isDiceRolling = false; return; }
+
+        const value = Math.floor(Math.random() * 6) + 1;
+
+        // Az egyes lapok célértékei (szemben lévő lapok összege 7)
+        const targets = {
+            1: { rx: 0, ry: 0 },
+            6: { rx: 0, ry: 180 },
+            3: { rx: 0, ry: -90 },
+            4: { rx: 0, ry: 90 },
+            2: { rx: -90, ry: 0 },
+            5: { rx: 90, ry: 0 }
+        };
+        const t = targets[value];
+
+        // Extra teljes körök hozzáadása a látványos pörgéshez
+        const spinsX = 360 * (2 + Math.floor(Math.random() * 2)) * (Math.random() < 0.5 ? 1 : -1);
+        const spinsY = 360 * (2 + Math.floor(Math.random() * 2)) * (Math.random() < 0.5 ? 1 : -1);
+
+        const finalRX = t.rx + spinsX;
+        const finalRY = t.ry + spinsY;
+
+        if (resultText) resultText.innerText = 'Pörög...';
+
+        cube.style.transition = 'transform 2.2s cubic-bezier(0.15, 0.85, 0.3, 1)';
+        cube.style.transform = `rotateX(${finalRX}deg) rotateY(${finalRY}deg)`;
+
+        const onTransitionEnd = () => {
+            cube.removeEventListener('transitionend', onTransitionEnd);
+
+            // Nyugalmi állapot elmentése (normalizált, kör nélküli szög)
+            this.diceRotX = t.rx;
+            this.diceRotY = t.ry;
+
+            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+
+            if (resultText) resultText.innerText = `Dobtál: ${value}`;
+
+            const player = this.activePlayers[this.currentPlayerIndex];
+            this.log(`🎲 <b>${player.name}</b> dobott: <b>${value}</b>`);
+
+            setTimeout(() => {
+                this.isDiceRolling = false;
+                this.closeDiceModal();
+                this.movePlayer(player, value);
+            }, 900);
+        };
+
+        cube.addEventListener('transitionend', onTransitionEnd);
     }
 
     // Animált visszapattanás túldobás esetén
@@ -555,7 +762,10 @@ class BoardGame {
         if (this.chanceFields[player.pos]) {
             this.log(`✨ ${player.name} szerencsés mezőn! Húzz egy kártyát!`); // Tegeződés
             if (btn) btn.disabled = false;
-            this.isAnimating = false;
+            // JAVÍTVA (bug): itt korábban this.isAnimating = false; állt, emiatt
+            // újra lehetett dobni a kártya meghúzása előtt. Az isAnimating-nak
+            // igaznak KELL maradnia, amíg a szerencsekártyát fel nem húzzák és
+            // a hatása le nem zajlik (lásd: drawChanceCard / pendingCardAction).
             return;
         }
 

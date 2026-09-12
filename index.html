@@ -6,6 +6,160 @@
     <title>Társasjáték - Ultimate GIF Edition</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ÚJ: Interaktív dobókocka stílusai (külön blokk, a style.css-t nem módosítja) -->
+    <style>
+        /* --- Kockadobó gomb a vezérlőpanelen --- */
+        .dice-trigger-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: 6px;
+        }
+        .dice-trigger-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(145deg, #f5b301, #d98c00);
+            color: #241a00;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #a86e00, 0 8px 14px rgba(0,0,0,0.35);
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+        .dice-trigger-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #a86e00, 0 4px 8px rgba(0,0,0,0.35);
+        }
+        .dice-trigger-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .dice-trigger-btn i {
+            font-size: 1.4rem;
+        }
+
+        .dice-fallback-toggle {
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .dice-fallback-buttons {
+            margin-top: 10px;
+        }
+
+        /* --- Dobókocka modal --- */
+        #dice-overlay .dice-modal {
+            width: min(92vw, 380px);
+            background: radial-gradient(circle at 50% 0%, #1e2749 0%, #0b1024 70%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: 26px 22px 22px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            color: #e5e7eb;
+        }
+
+        .dice-modal h2 {
+            margin: 0 0 4px;
+            font-size: 1.3rem;
+            color: #f5b301;
+        }
+
+        .dice-modal .dice-hint {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin: 0 0 18px;
+            line-height: 1.4;
+        }
+
+        .dice-scene {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 16px;
+            perspective: 800px;
+            cursor: grab;
+            touch-action: none;
+        }
+        .dice-scene:active {
+            cursor: grabbing;
+        }
+
+        .dice-cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(-20deg) rotateY(30deg);
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            background: linear-gradient(145deg, #ffffff, #d7dce5);
+            border: 2px solid #b9c0cc;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.08);
+        }
+        .dice-face i {
+            font-size: 3.6rem;
+            color: #1e2749;
+        }
+
+        .dice-face-front  { transform: rotateY(0deg)   translateZ(65px); }
+        .dice-face-back   { transform: rotateY(180deg) translateZ(65px); }
+        .dice-face-right  { transform: rotateY(90deg)  translateZ(65px); }
+        .dice-face-left   { transform: rotateY(-90deg) translateZ(65px); }
+        .dice-face-top    { transform: rotateX(90deg)  translateZ(65px); }
+        .dice-face-bottom { transform: rotateX(-90deg) translateZ(65px); }
+
+        #dice-result-text {
+            min-height: 1.6em;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 12px;
+        }
+
+        #enable-motion-btn {
+            display: block;
+            margin: 0 auto 12px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            color: #e5e7eb;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .dice-roll-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #f5b301, #d98c00);
+            color: #241a00;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #a86e00;
+        }
+    </style>
 </head>
 <body>
 
@@ -100,8 +254,18 @@
             </div>
 
             <div class="dice-input-section">
-                <p class="dice-label">Mit dobtál a kockával?</p>
-                <div class="dice-buttons">
+                <p class="dice-label">Dobj a kockával!</p>
+                <div class="dice-trigger-wrap">
+                    <button id="open-dice-btn" class="dice-trigger-btn" onclick="game.openDiceModal()">
+                        <i class="fas fa-dice"></i> Dobás
+                    </button>
+                </div>
+
+                <!-- Tartalék, kézi bevitel azoknak, akiknél nem működne jól az interaktív kocka -->
+                <button class="dice-fallback-toggle" onclick="document.getElementById('dice-fallback-buttons').classList.toggle('hidden')">
+                    Nem működik a kocka? Válassz kézzel
+                </button>
+                <div id="dice-fallback-buttons" class="dice-buttons dice-fallback-buttons hidden">
                     <button onclick="game.handleRoll(1)"><i class="fas fa-dice-one"></i></button>
                     <button onclick="game.handleRoll(2)"><i class="fas fa-dice-two"></i></button>
                     <button onclick="game.handleRoll(3)"><i class="fas fa-dice-three"></i></button>
@@ -196,6 +360,34 @@
                 </div>
 
             </div>
+        </div>
+    </div>
+
+    <div id="dice-overlay" class="overlay hidden">
+        <div class="dice-modal">
+            <h2><i class="fas fa-dice"></i> Dobj a kockával!</h2>
+            <p class="dice-hint">Koppints a kockára, húzd meg / pörgesd meg ujjal vagy egérrel, vagy rázd meg a telefont!</p>
+
+            <button id="enable-motion-btn" class="hidden" onclick="game.requestMotionPermission()">
+                <i class="fas fa-mobile-screen-button"></i> Rázás engedélyezése
+            </button>
+
+            <div class="dice-scene" id="dice-scene">
+                <div class="dice-cube" id="dice-cube">
+                    <div class="dice-face dice-face-front"><i class="fas fa-dice-one"></i></div>
+                    <div class="dice-face dice-face-back"><i class="fas fa-dice-six"></i></div>
+                    <div class="dice-face dice-face-right"><i class="fas fa-dice-three"></i></div>
+                    <div class="dice-face dice-face-left"><i class="fas fa-dice-four"></i></div>
+                    <div class="dice-face dice-face-top"><i class="fas fa-dice-two"></i></div>
+                    <div class="dice-face dice-face-bottom"><i class="fas fa-dice-five"></i></div>
+                </div>
+            </div>
+
+            <p id="dice-result-text"></p>
+
+            <button class="dice-roll-btn" onclick="game.rollDice()">
+                <i class="fas fa-hand-pointer"></i> Dobj helyettem
+            </button>
         </div>
     </div>
 
