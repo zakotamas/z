@@ -474,6 +474,60 @@ input:focus-visible {
     height: 100%;
 }
 
+/* --- ÚJ: Soron lévő játékos panel a pálya közepén, a karakter felett --- */
+.board-player-panel {
+    position: absolute;
+    top: 9%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    z-index: 6;
+    text-align: center;
+}
+
+.board-player-panel h2 {
+    font-size: 0.68rem;
+    margin-bottom: 4px;
+}
+
+.board-player-panel .player-indicator-box {
+    padding: 12px 12px;
+    background: rgba(4, 6, 14, 0.55);
+    backdrop-filter: blur(4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.board-player-panel #player-name-input {
+    font-size: 1.05rem;
+    padding-bottom: 2px;
+}
+
+/* --- ÚJ: Szerencsekártya gomb a pálya közepén, a karakter alatt --- */
+.board-chance-panel {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 58%;
+    z-index: 6;
+}
+
+.board-chance-panel #draw-card-btn {
+    padding: 10px;
+    font-size: 0.85rem;
+    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 480px) {
+    .board-player-panel { top: 5%; width: 64%; }
+    .board-player-panel h2 { font-size: 0.58rem; }
+    .board-player-panel .player-indicator-box { padding: 6px 10px; }
+    .board-player-panel #player-name-input { font-size: 0.9rem; }
+
+    .board-chance-panel { bottom: 5%; width: 64%; }
+    .board-chance-panel #draw-card-btn { padding: 8px; font-size: 0.75rem; }
+}
+
 /* Mezők stílusa */
 .field {
     position: absolute;
@@ -603,6 +657,11 @@ input:focus-visible {
     color: #94a3b8;
     margin-bottom: 6px;
     font-weight: 600;
+}
+
+/* Játékszabály gomb a vezérlőpanel tetején (a felszabadult helyen) */
+.rules-btn-wrap {
+    text-align: center;
 }
 
 .player-indicator-box {
@@ -769,11 +828,11 @@ input:focus-visible {
     transform: none;
 }
 
-/* Napló */
+/* Napló — a jobb oldalon felszabadult hely miatt magasabb */
 .game-log-container {
     display: flex;
     flex-direction: column;
-    height: 250px;
+    height: 420px;
 }
 
 .game-log-container h3 {
@@ -942,7 +1001,7 @@ input:focus-visible {
     margin: 12px auto 0;
     padding: 12px 30px;
     border: none;
-    color: white;
+    color: rgb(214, 107, 7);
     border-radius: var(--radius-pill);
     cursor: pointer;
     font-weight: 700;
@@ -1215,6 +1274,8 @@ input:focus-visible {
     }
 
     .controls { width: 100%; }
+
+    .game-log-container { height: 300px; }
 
     .setup-content {
         max-height: 90vh;
