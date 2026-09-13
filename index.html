@@ -234,23 +234,31 @@
             <div class="center-image-container">
                 <img src="img/jatek_kozep.png" alt="Játék közepe" class="center-img">
             </div>
-            
-            <div id="game-board" class="board"></div>
-        </div>
 
-        <div class="controls">
-            <div class="current-player-info">
+            <!-- ÚJ: Soron lévő játékos neve a pálya közepén, a karakter felett -->
+            <div class="current-player-info board-player-panel">
                 <h2>Soron lévő (Neved átírható):</h2>
                 <div id="player-indicator-box" class="player-indicator-box">
                     <input type="text" id="player-name-input" maxlength="12" value="Játékos 1" autocomplete="off">
                 </div>
+            </div>
 
-                <!-- Játékszabály gomb elérhető játék közben is -->
-                <div style="margin-top:10px; text-align:center;">
-                    <button class="rules-btn" onclick="game.toggleRules(true)">
-                        <i class="fas fa-book-open"></i> Játékszabály
-                    </button>
-                </div>
+            <!-- ÚJ: Szerencsekártya gomb a pálya közepén, a karakter alatt -->
+            <div class="actions board-chance-panel">
+                <button id="draw-card-btn" onclick="game.drawChanceCard()" disabled>
+                    <i class="fas fa-ticket-alt"></i> Szerencsekártya
+                </button>
+            </div>
+
+            <div id="game-board" class="board"></div>
+        </div>
+
+        <div class="controls">
+            <!-- Játékszabály gomb elérhető játék közben is -->
+            <div class="rules-btn-wrap">
+                <button class="rules-btn" onclick="game.toggleRules(true)">
+                    <i class="fas fa-book-open"></i> Játékszabály
+                </button>
             </div>
 
             <div class="dice-input-section">
@@ -273,12 +281,6 @@
                     <button onclick="game.handleRoll(5)"><i class="fas fa-dice-five"></i></button>
                     <button onclick="game.handleRoll(6)"><i class="fas fa-dice-six"></i></button>
                 </div>
-            </div>
-
-            <div class="actions">
-                <button id="draw-card-btn" onclick="game.drawChanceCard()" disabled>
-                    <i class="fas fa-ticket-alt"></i> Szerencsekártya
-                </button>
             </div>
 
             <div class="game-log-container">
