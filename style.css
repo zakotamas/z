@@ -519,12 +519,12 @@ input:focus-visible {
 }
 
 @media (max-width: 480px) {
-    .board-player-panel { top: 5%; width: 64%; }
-    .board-player-panel h2 { font-size: 0.58rem; }
+    .board-player-panel { top: 8%; width: 64%; }
+    .board-player-panel h2 { font-size: 0.5rem; }
     .board-player-panel .player-indicator-box { padding: 6px 10px; }
     .board-player-panel #player-name-input { font-size: 0.9rem; }
 
-    .board-chance-panel { bottom: 5%; width: 64%; }
+    .board-chance-panel { bottom: 9%; width: 64%; }
     .board-chance-panel #draw-card-btn { padding: 8px; font-size: 0.75rem; }
 }
 
@@ -651,7 +651,7 @@ input:focus-visible {
 }
 
 .current-player-info h2 {
-    font-size: 0.85rem;
+    font-size: 0.55rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: #94a3b8;
